@@ -1,19 +1,17 @@
 import os
 import sys
+
 import transaction
-
-from sqlalchemy import engine_from_config
-
 from pyramid.paster import (
     get_appsettings,
     setup_logging,
     )
-
 from pyramid.scripts.common import parse_vars
+from sqlalchemy import engine_from_config
 
 from ..models import (
     DBSession,
-    MyModel,
+    Artifakt,
     Base,
     )
 
@@ -36,5 +34,5 @@ def main(argv=sys.argv):
     DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
     with transaction.manager:
-        model = MyModel(name='one', value=1)
+        model = Artifakt(filename='one', sha1='deadbeef')
         DBSession.add(model)

@@ -1,2 +1,6 @@
 
 .idea/workspace.xml
+.idea/vcs.xml
+artifakt.egg-info/
+artifakt/__pycache__/
+artifakt/scripts/__pycache__/

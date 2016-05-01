@@ -1,8 +1,8 @@
 from sqlalchemy import (
     Column,
-    Index,
     Integer,
-    Text,
+    String,
+    CHAR
     )
 
 from sqlalchemy.ext.declarative import declarative_base
@@ -18,10 +18,11 @@ DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
 
-class MyModel(Base):
-    __tablename__ = 'models'
+class Artifakt(Base):
+    __tablename__ = 'artifakt'
     id = Column(Integer, primary_key=True)
-    name = Column(Text)
-    value = Column(Integer)
+    filename = Column(String(length=255))
+    sha1 = Column(CHAR(length=40))
 
-Index('my_index', MyModel.name, unique=True, mysql_length=255)
+# FIXME: Needed ?
+# Index('my_index', Artifakt.name, unique=True, mysql_length=255)

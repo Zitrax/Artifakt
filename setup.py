@@ -10,14 +10,14 @@ with open(os.path.join(here, 'CHANGES.txt')) as f:
 
 requires = [
     'pyramid',
-    'pyramid_chameleon',
     'pyramid_debugtoolbar',
     'pyramid_tm',
     'SQLAlchemy',
     'transaction',
     'zope.sqlalchemy',
     'waitress',
-    'pyramid_jinja2'
+    'pyramid_jinja2',
+    'mysqlclient'  # Needs libpython3.5-dev
     ]
 
 setup(name='artifakt',

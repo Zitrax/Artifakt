@@ -8,6 +8,8 @@ Getting Started
 
 - $VENV/bin/python setup.py develop
 
+- Create a new database named 'artifaktdb' in mysql
+
 - $VENV/bin/initialize_artifakt_db development.ini
 
 - $VENV/bin/pserve development.ini
