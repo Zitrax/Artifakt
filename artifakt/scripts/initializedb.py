@@ -9,7 +9,7 @@ from pyramid.paster import (
 from pyramid.scripts.common import parse_vars
 from sqlalchemy import engine_from_config
 
-from ..models import (
+from artifakt.models.models import (
     DBSession,
     Artifakt,
     Base,
