@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="${request.locale_name}">
+<head>
+    <title>Artifacts</title>
+</head>
+<body>
+    <table>
+    <tr><th>Filename</th><th>SHA1</th></tr>
+    {% for artifact in artifacts %}
+        <tr><td>{{ artifact.filename }}</td><td>{{ artifact.sha1 }}</td></tr>
+    {% endfor %}
+    </table>
+</body>
+</html>
