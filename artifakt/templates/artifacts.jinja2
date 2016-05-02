@@ -5,9 +5,9 @@
 </head>
 <body>
     <table>
-    <tr><th>Filename</th><th>SHA1</th></tr>
+    <tr><th>Filename</th><th>SHA1</th><th>Comment</th></tr>
     {% for artifact in artifacts %}
-        <tr><td>{{ artifact.filename }}</td><td>{{ artifact.sha1 }}</td></tr>
+        <tr><td>{{ artifact.filename }}</td><td>{{ artifact.sha1 }}</td><td>{{ artifact.comment }}</td></tr>
     {% endfor %}
     </table>
 </body>
