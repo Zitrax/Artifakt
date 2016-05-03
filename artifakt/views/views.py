@@ -1,6 +1,5 @@
 from pyramid.response import Response
 from pyramid.view import view_config
-
 from sqlalchemy.exc import DBAPIError
 
 from artifakt.models.models import (
@@ -10,7 +9,7 @@ from artifakt.models.models import (
 
 
 @view_config(route_name='home', renderer='artifakt:templates/mytemplate.pt')
-def my_view(request):
+def home(request):
     try:
         one = DBSession.query(Artifakt).filter(Artifakt.filename == 'one').first()
     except DBAPIError:

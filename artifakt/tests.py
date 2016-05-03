@@ -1,6 +1,6 @@
 import unittest
-import transaction
 
+import transaction
 from pyramid import testing
 
 from artifakt.models.models import DBSession
@@ -26,9 +26,9 @@ class TestMyViewSuccessCondition(unittest.TestCase):
         testing.tearDown()
 
     def test_passing_view(self):
-        from artifakt.views.views import my_view
+        from artifakt.views.views import home
         request = testing.DummyRequest()
-        info = my_view(request)
+        info = home(request)
         self.assertEqual(info['one'].filename, 'one')
         self.assertEqual(info['project'], 'artifakt')
 
@@ -45,7 +45,7 @@ class TestMyViewFailureCondition(unittest.TestCase):
         testing.tearDown()
 
     def test_failing_view(self):
-        from artifakt.views.views import my_view
+        from artifakt.views.views import home
         request = testing.DummyRequest()
-        info = my_view(request)
+        info = home(request)
         self.assertEqual(info.status_int, 500)

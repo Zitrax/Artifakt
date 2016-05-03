@@ -20,5 +20,6 @@ def main(global_config, **settings):
     config.add_route('home', '/')
     config.add_route('artifacts', '/artifacts')
     config.add_route('artifacts_json', '/artifacts.json')
+    config.add_route('upload_post', '/upload')
     config.scan()
     return config.make_wsgi_app()
