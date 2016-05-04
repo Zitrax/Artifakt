@@ -1,18 +1,16 @@
 from sqlalchemy import (
     Column,
-    Integer,
     String,
     Text,
-    CHAR
+    CHAR,
+    DateTime
     )
-
 from sqlalchemy.ext.declarative import declarative_base
-
 from sqlalchemy.orm import (
     scoped_session,
     sessionmaker,
     )
-
+from sqlalchemy.sql import func
 from zope.sqlalchemy import ZopeTransactionExtension
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
@@ -27,10 +25,10 @@ class JSONSerializable(object):
 
 class Artifakt(JSONSerializable, Base):
     __tablename__ = 'artifakt'
-    id = Column(Integer, primary_key=True)
+    sha1 = Column(CHAR(length=40), nullable=False, primary_key=True)
     filename = Column(String(length=255), nullable=False)
-    sha1 = Column(CHAR(length=40), nullable=False)
     comment = Column(Text)
+    created = Column(DateTime, default=func.now())
 
 
 
