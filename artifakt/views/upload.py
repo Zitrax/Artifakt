@@ -10,13 +10,15 @@ from artifakt.models.models import Artifakt, DBSession
 
 
 def validate_metadata(data):
+    if not data:
+        return data
     diff = set(data.keys()).difference({'comment'})
     if diff:
         raise ValueError("Metadata contains unknown/invalid values: " + str(diff))
     return data
 
 
-@view_config(route_name='upload_post', renderer='json', request_method='POST')
+@view_config(route_name='upload', renderer='json', request_method='POST')
 def upload_post(request):
     # TODO: Handle known exceptions better instead of default 500
     # TODO: Allow multiple files ? ( it gets complicated with http status )
@@ -25,15 +27,16 @@ def upload_post(request):
 
     if "file" not in request.POST:
         request.response.status = 400
-        return {'error': 'Missing file field in POST reqiest'}
+        return {'error': 'Missing file field in POST request'}
 
     metadata = json.loads(request.POST.getone('metadata')) if 'metadata' in request.POST else None
     validate_metadata(metadata)
-
+    print(request.POST)
     for item in request.POST.getall('file'):
         tmp = NamedTemporaryFile(delete=False, prefix='artifakt_')
         try:
             sha1_hash = hashlib.sha1()
+            print(item)
             content = item.file.read()
             tmp.write(content)
             sha1_hash.update(content)
@@ -58,7 +61,7 @@ def upload_post(request):
             shutil.move(tmp.name, blob)
 
             # noinspection PyArgumentList
-            af = Artifakt(filename=item.filename, sha1=sha1, **metadata)
+            af = Artifakt(filename=item.filename, sha1=sha1, **metadata if metadata else {})
             artifacts.append(af)
             DBSession.add(af)
 
@@ -67,3 +70,8 @@ def upload_post(request):
                 os.remove(tmp.name)
 
     return {"artifacts": [a.sha1 for a in artifacts]}
+
+
+@view_config(route_name='upload', renderer='artifakt:templates/upload_form.jinja2', request_method="GET")
+def upload_form(request):
+    return { "metadata": Artifakt.metadata_keys() }

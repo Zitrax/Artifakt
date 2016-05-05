@@ -8,6 +8,7 @@
         {% for col in artifact.__table__.columns %}
             <tr><th>{{ col.name }}</th><td>{{ artifact|attr(col.name) }}</td></tr>
         {% endfor %}
+        <tr><th>File size</th><td>{{ artifact.size }}</td></tr>
     </table>
 </body>
 </html>

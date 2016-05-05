@@ -1,3 +1,5 @@
+import os
+
 from sqlalchemy import (
     Column,
     String,
@@ -15,6 +17,10 @@ from zope.sqlalchemy import ZopeTransactionExtension
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
+
+# Set by main
+# FIXME: Is there a better way ?
+storage = None
 
 
 class JSONSerializable(object):
@@ -40,6 +46,18 @@ class Artifakt(JSONSerializable, Base):
     comment = Column(Text)
     created = Column(DateTime, default=func.now())
 
+    @property
+    def file(self):
+        return os.path.join(storage, self.sha1[0:2], self.sha1[2:])
+
+    @property
+    def size(self):
+        # TODO: Possibly it's better to store this in the db - since size should not change anyway
+        return os.path.getsize(self.file)
+
+    @staticmethod
+    def metadata_keys():
+        return ['comment']
 
 # FIXME: Needed ?
 # Index('my_index', Artifakt.name, unique=True, mysql_length=255)

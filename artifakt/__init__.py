@@ -1,6 +1,7 @@
 from pyramid.config import Configurator
 from sqlalchemy import engine_from_config
 
+from artifakt.models import models
 from artifakt.models.models import (
     DBSession,
     Base,
@@ -26,7 +27,10 @@ def main(global_config, **settings):
     config.add_route('artifacts', '/artifacts')
     config.add_route('artifacts_json', '/artifacts.json')
 
-    config.add_route('upload_post', '/upload')
+    config.add_route('upload', '/upload')
 
     config.scan()
+
+    models.storage = settings['artifakt.storage']
+
     return config.make_wsgi_app()
