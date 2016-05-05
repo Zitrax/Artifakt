@@ -1,4 +1,5 @@
 import hashlib
+import json
 import os
 import shutil
 from tempfile import NamedTemporaryFile
@@ -8,13 +9,28 @@ from pyramid.view import view_config
 from artifakt.models.models import Artifakt, DBSession
 
 
+def validate_metadata(data):
+    diff = set(data.keys()).difference({'comment'})
+    if diff:
+        raise ValueError("Metadata contains unknown/invalid values: " + str(diff))
+    return data
+
+
 @view_config(route_name='upload_post', renderer='json', request_method='POST')
 def upload_post(request):
-    # TODO: Add metadata
+    # TODO: Handle known exceptions better instead of default 500
     # TODO: Allow multiple files ? ( it gets complicated with http status )
     # TODO: Check performance and memory usage. Might need to read and write in chunks
     artifacts = []
-    for item in request.POST.values():
+
+    if "file" not in request.POST:
+        request.response.status = 400
+        return {'error': 'Missing file field in POST reqiest'}
+
+    metadata = json.loads(request.POST.getone('metadata')) if 'metadata' in request.POST else None
+    validate_metadata(metadata)
+
+    for item in request.POST.getall('file'):
         tmp = NamedTemporaryFile(delete=False, prefix='artifakt_')
         try:
             sha1_hash = hashlib.sha1()
@@ -42,7 +58,7 @@ def upload_post(request):
             shutil.move(tmp.name, blob)
 
             # noinspection PyArgumentList
-            af = Artifakt(filename=item.filename, sha1=sha1)
+            af = Artifakt(filename=item.filename, sha1=sha1, **metadata)
             artifacts.append(af)
             DBSession.add(af)
 
