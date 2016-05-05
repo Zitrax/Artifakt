@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="${request.locale_name}">
+<head>
+    <title>Artifact</title>
+</head>
+<body>
+    <table>
+        {% for col in artifact.__table__.columns %}
+            <tr><th>{{ col.name }}</th><td>{{ artifact|attr(col.name) }}</td></tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

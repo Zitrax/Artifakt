@@ -18,6 +18,7 @@ def main(global_config, **settings):
     config.include('pyramid_chameleon')
     config.add_static_view('static', 'static', cache_max_age=3600)
     config.add_route('home', '/')
+    config.add_route('artifact', '/artifact/{sha1}')
     config.add_route('artifacts', '/artifacts')
     config.add_route('artifacts_json', '/artifacts.json')
     config.add_route('upload_post', '/upload')

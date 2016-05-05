@@ -7,7 +7,8 @@
     <table>
     <tr><th>Filename</th><th>SHA1</th><th>Created</th><th>Comment</th></tr>
     {% for artifact in artifacts %}
-        <tr><td>{{ artifact.filename }}</td><td>{{ artifact.sha1 }}</td><td>{{ artifact.created }}</td><td>{{ artifact.comment }}</td></tr>
+        <tr><td><a href="/artifact/{{ artifact.sha1 }}">{{ artifact.filename }}</a></td>
+            <td>{{ artifact.sha1 }}</td><td>{{ artifact.created }}</td><td>{{ artifact.comment }}</td></tr>
     {% endfor %}
     </table>
 </body>

@@ -12,3 +12,10 @@ def artifacts(_):
 @view_config(route_name='artifacts_json', renderer='json')
 def artifacts_json(_):
     return {'artifacts': [a.to_dict() for a in DBSession.query(Artifakt).all()]}
+
+
+@view_config(route_name='artifact', renderer='artifakt:templates/artifact.jinja2')
+def artifacts_json(request):
+    sha1 = request.matchdict["sha1"]
+    artifact = DBSession.query(Artifakt).filter(Artifakt.sha1 == sha1).one_or_none()
+    return { 'artifact': artifact }
