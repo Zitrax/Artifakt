@@ -19,8 +19,18 @@ Base = declarative_base()
 
 class JSONSerializable(object):
     """Mixin for adding JSON serialization"""
+
+    @staticmethod
+    def convert(obj):
+        """Makes sure some types can be json serialized"""
+        if hasattr(obj, 'isoformat'):
+            return obj.isoformat()
+        else:
+            return obj
+
     def to_dict(self):
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+        # noinspection PyUnresolvedReferences
+        return {c.name: self.convert(getattr(self, c.name)) for c in self.__table__.columns}
 
 
 class Artifakt(JSONSerializable, Base):
@@ -29,7 +39,6 @@ class Artifakt(JSONSerializable, Base):
     filename = Column(String(length=255), nullable=False)
     comment = Column(Text)
     created = Column(DateTime, default=func.now())
-
 
 
 # FIXME: Needed ?
