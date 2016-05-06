@@ -1,4 +1,5 @@
 from pyramid.httpexceptions import HTTPNotFound
+from pyramid.response import Response
 from pyramid.view import view_config
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -32,3 +33,10 @@ def artifact(request):
 @view_config(route_name='artifact_json', renderer='json')
 def artifact_json(request):
     return get_artifact(request).to_dict()
+
+
+@view_config(route_name='artifact_delete')
+def artifact_json(request):
+    af = get_artifact(request)
+    DBSession.delete(af)
+    return Response(status_int=302, location="/artifacts")

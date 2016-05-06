@@ -14,6 +14,8 @@ def main(global_config, **settings):
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
     Base.metadata.bind = engine
+    # FIXME: This is a default unsecure factory
+    # my_session_factory = SignedCookieSessionFactory('itsaseekreet')
     config = Configurator(settings=settings)
     config.include('pyramid_jinja2')
     config.include('pyramid_chameleon')
@@ -23,6 +25,7 @@ def main(global_config, **settings):
 
     config.add_route('artifact_json', '/artifact/{sha1}.json')
     config.add_route('artifact', '/artifact/{sha1}')
+    config.add_route('artifact_delete', '/artifact/{sha1}/delete')
 
     config.add_route('artifacts', '/artifacts')
     config.add_route('artifacts_json', '/artifacts.json')
