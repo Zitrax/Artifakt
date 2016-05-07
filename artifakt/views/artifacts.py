@@ -47,7 +47,16 @@ def artifact_delete(request):
 
 
 @view_config(route_name='artifact_download')
-def artifact_download(request):
+def artifact_attachment_view(request):
+    return artifact_download(request, inline=False)
+
+
+@view_config(route_name='artifact_view')
+def artifact_inline_view(request):
+    return artifact_download(request, inline=True)
+
+
+def artifact_download(request, inline):
     af = get_artifact(request)
     disk_name = af.file
     file_name = af.filename
@@ -57,5 +66,5 @@ def artifact_download(request):
     # If the current simple approach proves to be a problem the discussion
     # at http://stackoverflow.com/q/93551/11722 can be considered.
     response =  FileResponse(disk_name, request=request, content_type=mime)
-    response.content_disposition = 'attachment; filename="{}"'.format(file_name)
+    response.content_disposition = '{}; filename="{}"'.format('inline' if inline else 'attachment', file_name)
     return response

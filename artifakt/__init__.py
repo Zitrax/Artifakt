@@ -27,6 +27,7 @@ def main(global_config, **settings):
     config.add_route('artifact', '/artifact/{sha1}')
     config.add_route('artifact_delete', '/artifact/{sha1}/delete')
     config.add_route('artifact_download', '/artifact/{sha1}/download')
+    config.add_route('artifact_view', '/artifact/{sha1}/view')
 
     config.add_route('artifacts', '/artifacts')
     config.add_route('artifacts_json', '/artifacts.json')
