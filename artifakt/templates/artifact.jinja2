@@ -10,7 +10,7 @@
         {% endfor %}
         <tr><th>File size</th><td>{{ artifact.size }}</td></tr>
     </table>
-    <button>Download</button>
+    <form action="/artifact/{{ artifact.sha1 }}/download"><input type="submit" value="Download"></form>
     <form action="/artifact/{{ artifact.sha1 }}/delete"><input type="submit" value="&#x1f5d1; Delete"></form>
 </body>
 </html>

@@ -1,5 +1,7 @@
+import mimetypes
+
 from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest
-from pyramid.response import Response
+from pyramid.response import Response, FileResponse
 from pyramid.view import view_config
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -42,3 +44,18 @@ def artifact_delete(request):
     af = get_artifact(request)
     DBSession.delete(af)
     return Response(status_int=302, location="/artifacts")
+
+
+@view_config(route_name='artifact_download')
+def artifact_download(request):
+    af = get_artifact(request)
+    disk_name = af.file
+    file_name = af.filename
+    mime, encoding = mimetypes.guess_type(file_name)
+    if mime is None:
+        mime = 'application/octet-stream'
+    # If the current simple approach proves to be a problem the discussion
+    # at http://stackoverflow.com/q/93551/11722 can be considered.
+    response =  FileResponse(disk_name, request=request, content_type=mime)
+    response.content_disposition = 'attachment; filename="{}"'.format(file_name)
+    return response

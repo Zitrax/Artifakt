@@ -2,18 +2,56 @@
 <html lang="${request.locale_name}">
 <head>
     <title>Artifacts</title>
+    <script src="//oss.maxcdn.com/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script>
+        $(function () {
+            $("#upload_form").submit(function (e) {
+                e.preventDefault();
+                // Note FormData is needed for ajax file upload
+                // but it isn't supported on some older browsers.
+                var formData = new FormData($(this)[0]);
+                $.ajax({
+                    dataType: "json",
+                    type: $(this).attr('method'),
+                    url: $(this).attr('action'),
+                    data: formData,
+                    // This must be done for file upload !
+                    contentType: false,
+                    processData: false
+                }).done(function (data) {
+                    // If only one file was uploaded we redirect to that specific artifact
+                    if(data.artifacts.length == 1)
+                        window.location.href = "/artifact/" + data.artifacts[0];
+                    // otherwise back to the list of all artifacts.
+                    // TODO: But should improve this later
+                    else
+                        window.location.href = "/artifacts";
+                }).fail(function (data) {
+                    alert("Error uploading file");
+                });
+            });
+        });
+    </script>
 </head>
 <body>
-    <form action="/upload" method="post" enctype="multipart/form-data">
-        <table>
-            <tr><th>File</th><td><input type="file" name="file"></td></tr>
-            {#
+<form action="/upload" id="upload_form" method="post" enctype="multipart/form-data">
+    <table>
+        <tr>
+            <th>File</th>
+            <td><input type="file" name="file"></td>
+        </tr>
+        {#
             {% for md in metadata %}
                 <tr><th>{{ md }}</th><td><input type="text" name="{{ md }}"></td></tr>
             {% endfor %}
             #}
-            <tr><th>&nbsp;</th><td><input type="submit" value="Upload file"></td></tr>
-        </table>
-    </form>
+        <tr>
+            <th>&nbsp;</th>
+            <td>
+                <button type="submit">Upload file</button>
+            </td>
+        </tr>
+    </table>
+</form>
 </body>
 </html>
