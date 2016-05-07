@@ -1,3 +1,6 @@
+Note - still work in progress... !
+
+
 artifakt README
 ==================
 
