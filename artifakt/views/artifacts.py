@@ -1,4 +1,4 @@
-from pyramid.httpexceptions import HTTPNotFound
+from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest
 from pyramid.response import Response
 from pyramid.view import view_config
 from sqlalchemy.orm.exc import NoResultFound
@@ -18,6 +18,8 @@ def artifacts_json(_):
 
 
 def get_artifact(request):
+    if "sha1" not in request.matchdict:
+        raise HTTPBadRequest("Missing sha1 argument")
     sha1 = request.matchdict["sha1"]
     try:
         return DBSession.query(Artifakt).filter(Artifakt.sha1 == sha1).one()
@@ -36,7 +38,7 @@ def artifact_json(request):
 
 
 @view_config(route_name='artifact_delete')
-def artifact_json(request):
+def artifact_delete(request):
     af = get_artifact(request)
     DBSession.delete(af)
     return Response(status_int=302, location="/artifacts")

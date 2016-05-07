@@ -1,7 +1,6 @@
 import os
 import sys
 
-import transaction
 from pyramid.paster import (
     get_appsettings,
     setup_logging,
@@ -11,7 +10,6 @@ from sqlalchemy import engine_from_config
 
 from artifakt.models.models import (
     DBSession,
-    Artifakt,
     Base,
     )
 
@@ -33,6 +31,3 @@ def main(argv=sys.argv):
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
-    with transaction.manager:
-        model = Artifakt(filename='one', sha1='deadbeef')
-        DBSession.add(model)

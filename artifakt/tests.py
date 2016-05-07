@@ -2,6 +2,7 @@ import unittest
 
 import transaction
 from pyramid import testing
+from sqlalchemy.exc import OperationalError
 
 from artifakt.models.models import DBSession
 
@@ -26,11 +27,12 @@ class TestMyViewSuccessCondition(unittest.TestCase):
         testing.tearDown()
 
     def test_passing_view(self):
-        from artifakt.views.views import home
+        from artifakt.views.artifacts import artifact
         request = testing.DummyRequest()
-        info = home(request)
-        self.assertEqual(info['one'].filename, 'one')
-        self.assertEqual(info['project'], 'artifakt')
+        request.matchdict['sha1'] = 'deadbeef'
+        info = artifact(request)
+        self.assertEqual(info['artifact'].filename, 'one')
+        self.assertEqual(info['artifact'].sha1, 'deadbeef')
 
 
 class TestMyViewFailureCondition(unittest.TestCase):
@@ -45,7 +47,7 @@ class TestMyViewFailureCondition(unittest.TestCase):
         testing.tearDown()
 
     def test_failing_view(self):
-        from artifakt.views.views import home
+        from artifakt.views.artifacts import artifacts
         request = testing.DummyRequest()
-        info = home(request)
-        self.assertEqual(info.status_int, 500)
+        with self.assertRaises(OperationalError):
+            artifacts(request)
