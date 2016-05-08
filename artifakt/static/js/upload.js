@@ -20,8 +20,8 @@ $(function () {
             // TODO: But should improve this later
             else
                 window.location.href = "/artifacts";
-        }).fail(function (data) {
-            alert("Error uploading file");
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+            alert("Error uploading file: " + jqXHR.responseJSON.error    );
         });
     });
 });

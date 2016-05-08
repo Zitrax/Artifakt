@@ -19,6 +19,7 @@ class TestMyViewSuccessCondition(unittest.TestCase):
         DBSession.configure(bind=engine)
         Base.metadata.create_all(engine)
         with transaction.manager:
+            # noinspection PyArgumentList
             model = Artifakt(filename='one', sha1='deadbeef')
             DBSession.add(model)
 

@@ -43,7 +43,7 @@ class JSONSerializable(object):
 
 
 def sizeof_fmt(num, suffix='B'):
-    for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
+    for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
         if abs(num) < 1024.0:
             return "%3.1f %s%s" % (num, unit, suffix)
         num /= 1024.0
@@ -116,6 +116,7 @@ def artifakt_after_commit(session):
     deletes = getattr(session, 'deletes', None)
     if deletes:
         for obj in deletes:
+            # noinspection PyProtectedMember
             obj._delete()
         deletes.clear()
 

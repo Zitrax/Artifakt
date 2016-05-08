@@ -25,7 +25,7 @@ def get_artifact(request):
     sha1 = request.matchdict["sha1"]
     try:
         return DBSession.query(Artifakt).filter(Artifakt.sha1 == sha1).one()
-    except(NoResultFound):
+    except NoResultFound:
         raise HTTPNotFound("No artifact with sha1 {} found".format(sha1))
 
 
@@ -65,7 +65,7 @@ def artifact_download(request, inline):
         mime = 'application/octet-stream'
     # If the current simple approach proves to be a problem the discussion
     # at http://stackoverflow.com/q/93551/11722 can be considered.
-    response =  FileResponse(disk_name, request=request, content_type=mime)
+    response = FileResponse(disk_name, request=request, content_type=mime)
     response.content_disposition = '{}; filename="{}"'.format('inline' if inline else 'attachment', file_name)
     return response
 

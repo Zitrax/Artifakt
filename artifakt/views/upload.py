@@ -69,13 +69,7 @@ def upload_post(request):
             if os.path.exists(tmp.name):
                 os.remove(tmp.name)
 
-
     return {"artifacts": [a.sha1 for a in artifacts]}
-
-        # if len(artifacts) == 1:
-        #     return Response(status_int=302, location="/artifact/" + artifacts[0].sha1)
-        # else:
-        #     return Response(status_int=302, location="/artifacts")
 
 
 @view_config(route_name='upload', renderer='artifakt:templates/upload_form.jinja2', request_method="GET")
