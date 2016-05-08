@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="${request.locale_name}">
+<head>
+    <title>Artifact archive</title>
+</head>
+<body>
+<table>
+    {% if error is defined %}
+        <p>{{ error }}</p>
+    {% else %}
+        <tr><th>File</th><th>Size</th></tr>
+        {%  for file in files %}
+            <tr><td>{{ file.name }}</td><td>{{ file.size }}</td></tr>
+        {% endfor %}
+    {% endif %}
+</table>
+</body>
+</html>

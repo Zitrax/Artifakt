@@ -1,4 +1,5 @@
 import mimetypes
+import tarfile
 
 from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest
 from pyramid.response import Response, FileResponse
@@ -74,3 +75,15 @@ def artifact_download(request, inline):
 def artifact_inline_view(request):
     af = get_artifact(request)
     return {'content': af.file_content}
+
+
+@view_config(route_name='artifact_view_archive', renderer="artifakt:templates/artifact_archive.jinja2")
+def artifact_archive_view(request):
+    af = get_artifact(request)
+    file_name = af.filename
+    mime, encoding = mimetypes.guess_type(file_name)
+    if mime == "application/x-tar":
+        with tarfile.open(af.file) as tar:
+            files = tar.getmembers()
+            return {"files": files}
+    return {"error": "Mimetype {} is not a known/supported archive".format(mime)}
