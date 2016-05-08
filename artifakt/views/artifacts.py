@@ -51,8 +51,8 @@ def artifact_attachment_view(request):
     return artifact_download(request, inline=False)
 
 
-@view_config(route_name='artifact_view')
-def artifact_inline_view(request):
+@view_config(route_name='artifact_view_raw')
+def artifact_inline_view_raw(request):
     return artifact_download(request, inline=True)
 
 
@@ -68,3 +68,9 @@ def artifact_download(request, inline):
     response =  FileResponse(disk_name, request=request, content_type=mime)
     response.content_disposition = '{}; filename="{}"'.format('inline' if inline else 'attachment', file_name)
     return response
+
+
+@view_config(route_name='artifact_view', renderer="artifakt:templates/artifact_highlight.jinja2")
+def artifact_inline_view(request):
+    af = get_artifact(request)
+    return {'content': af.file_content}

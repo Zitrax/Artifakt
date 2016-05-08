@@ -67,6 +67,11 @@ class Artifakt(JSONSerializable, Base):
         return os.path.getsize(self.file)
 
     @property
+    def file_content(self):
+        with open(self.file, errors='replace') as f:
+            return f.read()
+
+    @property
     def size_h(self):
         """Human readable size"""
         return sizeof_fmt(self.size)

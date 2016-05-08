@@ -19,7 +19,9 @@ def main(global_config, **settings):
     config = Configurator(settings=settings)
     config.include('pyramid_jinja2')
     config.include('pyramid_chameleon')
+
     config.add_static_view('js', 'static/js', cache_max_age=3600)
+    config.add_static_view('css', 'static/css', cache_max_age=3600)
 
     config.add_route('home', '/')
 
@@ -27,6 +29,7 @@ def main(global_config, **settings):
     config.add_route('artifact', '/artifact/{sha1}')
     config.add_route('artifact_delete', '/artifact/{sha1}/delete')
     config.add_route('artifact_download', '/artifact/{sha1}/download')
+    config.add_route('artifact_view_raw', '/artifact/{sha1}/view_raw')
     config.add_route('artifact_view', '/artifact/{sha1}/view')
 
     config.add_route('artifacts', '/artifacts')
