@@ -1,5 +1,7 @@
 import mimetypes
 import tarfile
+import zipfile
+from collections import defaultdict
 
 from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest
 from pyramid.response import Response, FileResponse
@@ -82,8 +84,13 @@ def artifact_archive_view(request):
     af = get_artifact(request)
     file_name = af.filename
     mime, encoding = mimetypes.guess_type(file_name)
+    ret = defaultdict(list)
     if mime == "application/x-tar":
         with tarfile.open(af.file) as tar:
-            files = tar.getmembers()
-            return {"files": files}
+            ret['tarfiles'] = tar.getmembers()
+            return ret
+    if mime == "application/zip":
+        with zipfile.ZipFile(af.file) as zip:
+            ret['zipfiles'] = zip.infolist()
+            return ret
     return {"error": "Mimetype {} is not a known/supported archive".format(mime)}
