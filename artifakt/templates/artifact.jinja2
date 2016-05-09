@@ -2,18 +2,24 @@
 <html lang="${request.locale_name}">
 <head>
     <title>Artifact</title>
+    <script src="/js/jquery-2.2.3.min.js"></script>
+    <script src="/js/artifact.js"></script>
 </head>
 <body>
-    <table>
-        {% for col in artifact.__table__.columns %}
-            <tr><th>{{ col.name|capitalize }}</th><td>{{ artifact|attr(col.name) }}</td></tr>
-        {% endfor %}
-        <tr><th>File size</th><td>{{ artifact.size }} ({{ artifact.size_h }})</td></tr>
-    </table>
-    <form action="/artifact/{{ artifact.sha1 }}/download"><input type="submit" value="Download"></form>
-    <form action="/artifact/{{ artifact.sha1 }}/view_raw"><input type="submit" value="View raw"></form>
-    <form action="/artifact/{{ artifact.sha1 }}/view_archive"><input type="submit" value="View archive"></form>
-    <form action="/artifact/{{ artifact.sha1 }}/view"><input type="submit" value="View highlight"></form>
-    <form action="/artifact/{{ artifact.sha1 }}/delete"><input type="submit" value="&#x1f5d1; Delete"></form>
+<table>
+    {% for col in artifact.__table__.columns %}
+        <tr><th>{{ col.name|capitalize }}</th><td>{{ artifact|attr(col.name) }}</td></tr>
+    {% endfor %}
+    <tr><th>File size</th><td id="file_size">{{ artifact.size }} ({{ artifact.size_h }})</td></tr>
+</table>
+<table>
+    <tr>
+        <td><form action="/artifact/{{ artifact.sha1 }}/download"><input type="submit" value="Download"></form></td>
+        <td><form class="view_content" action="/artifact/{{ artifact.sha1 }}/view_raw"><input type="submit" value="View raw"></form></td>
+        <td><form action="/artifact/{{ artifact.sha1 }}/view_archive"><input type="submit" value="View archive"></form></td>
+        <td><form class="view_content"action="/artifact/{{ artifact.sha1 }}/view"><input type="submit" value="View highlight"></form></td>
+        <td><form action="/artifact/{{ artifact.sha1 }}/delete"><input type="submit" value="&#x1f5d1; Delete"></form></td>
+    </tr>
+</table>
 </body>
 </html>
