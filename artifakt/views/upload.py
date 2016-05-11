@@ -6,16 +6,37 @@ from tempfile import NamedTemporaryFile
 
 from pyramid.view import view_config
 
-from artifakt.models.models import Artifakt, DBSession
+from artifakt.models.models import Artifakt, DBSession, Repository, Vcs
 
 
 def validate_metadata(data):
     if not data:
         return data
-    diff = set(data.keys()).difference({'comment'})
-    if diff:
-        raise ValueError("Metadata contains unknown/invalid values: " + str(diff))
+
+    def validate(name, values):
+        if name in data:
+            diff = set(data[name].keys()).difference(values)
+            if diff:
+                raise ValueError("Metadata for {} contains unknown/invalid values: {}".format(name, str(diff)))
+
+    # FIXME; What to validate can be taken from the metadata_keys
+    validate("artifakt", {'comment'})
+    validate("repository", {'url', 'name'})
+    validate("vcs", {'revision'})
+
     return data
+
+
+# FIXME: Move
+def get_or_create(session, model, **kwargs):
+    instance = session.query(model).filter_by(**kwargs).first()
+    if instance:
+        return instance
+    else:
+        instance = model(**kwargs)
+        session.add(instance)
+        session.flush()
+        return instance
 
 
 @view_config(route_name='upload', renderer='json', request_method='POST')
@@ -23,6 +44,7 @@ def upload_post(request):
     # TODO: Handle known exceptions better instead of default 500
     # TODO: Allow multiple files ? ( it gets complicated with http status )
     # TODO: Check performance and memory usage. Might need to read and write in chunks
+    # TODO: Use a transaction to rollback everything if something failed
     artifacts = []
 
     if "file" not in request.POST:
@@ -60,8 +82,17 @@ def upload_post(request):
 
             shutil.move(tmp.name, blob)
 
+            repo = None
+            if 'repository' in metadata:
+                repo = get_or_create(DBSession, Repository, url = metadata['repository']['url'])
+            vcs = None
+            if repo and 'vcs' in metadata:
+                vcs = get_or_create(DBSession, Vcs, repository=repo, revision=metadata['vcs']['revision'])
+
+            ameta = metadata['artifakt'] if 'artifakt' in metadata else {}
+
             # noinspection PyArgumentList
-            af = Artifakt(filename=item.filename, sha1=sha1, **metadata if metadata else {})
+            af = Artifakt(filename=item.filename, sha1=sha1, vcs=vcs, **ameta)
             artifacts.append(af)
             DBSession.add(af)
 

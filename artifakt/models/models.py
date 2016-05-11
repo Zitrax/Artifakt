@@ -7,13 +7,15 @@ from sqlalchemy import (
     Text,
     CHAR,
     DateTime,
-    event
+    event,
+    Integer,
+    ForeignKey
     )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import (
     scoped_session,
     sessionmaker,
-    )
+    relationship)
 from sqlalchemy.orm.session import object_session, Session
 from sqlalchemy.sql import func
 from zope.sqlalchemy import ZopeTransactionExtension
@@ -50,12 +52,33 @@ def sizeof_fmt(num, suffix='B'):
     return "%.1f %s%s" % (num, 'Yi', suffix)
 
 
+# FIXME: Add cascading deletes
+
+class Repository(JSONSerializable, Base):
+    __tablename__ = 'repository'
+    id = Column(Integer, nullable=False, autoincrement=True, primary_key=True)
+    url = Column(String(length=255), nullable=False, unique=True)
+    name = Column(Text)
+
+
+class Vcs(JSONSerializable, Base):
+    __tablename__ = 'vcs'
+    id = Column(Integer, nullable=False, autoincrement=True, primary_key=True)
+    repository_id = Column(Integer, ForeignKey("repository.id"), primary_key=True)
+    revision = Column(CHAR(length=40), nullable=False, primary_key=True)
+
+    repository = relationship("Repository")
+
+
 class Artifakt(JSONSerializable, Base):
     __tablename__ = 'artifakt'
     sha1 = Column(CHAR(length=40), nullable=False, primary_key=True)
     filename = Column(String(length=255), nullable=False)
     comment = Column(Text)
     created = Column(DateTime, default=func.now())
+    vcs_id = Column(Integer, ForeignKey("vcs.id"))
+
+    vcs = relationship("Vcs")
 
     @property
     def file(self):
@@ -78,7 +101,10 @@ class Artifakt(JSONSerializable, Base):
 
     @staticmethod
     def metadata_keys():
-        return ['comment']
+        # TODO: Extract ths automatically along with types
+        return {'artifakt': ['comment'],
+                'repository': ['url', 'name'],
+                'vcs': ['revision']}
 
     def _delete(self):
         """Called by events - should not be manually invoked"""

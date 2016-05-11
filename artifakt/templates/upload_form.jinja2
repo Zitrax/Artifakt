@@ -13,8 +13,10 @@
             <th>File</th>
             <td><input type="file" name="file"></td>
         </tr>
-        {% for md in metadata %}
-            <tr><th>{{ md }}</th><td><input type="text" name="{{ md }}"></td></tr>
+        {% for key,vals in metadata.items() %}
+            {% for val in vals %}
+                <tr><th>{{ key }}.{{ val }}</th><td><input type="text" name="{{ key }}[{{ val }}]"></td></tr>
+            {% endfor %}
         {% endfor %}
         <tr>
             <th>&nbsp;</th>
