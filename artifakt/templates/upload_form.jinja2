@@ -3,6 +3,7 @@
 <head>
     <title>Upload artifact</title>
     <script src="/js/jquery-2.2.3.min.js"></script>
+    <script src="/js/jquery.serialize-object.min.js"></script>
     <script src="/js/upload.js"></script>
 </head>
 <body>
@@ -12,11 +13,9 @@
             <th>File</th>
             <td><input type="file" name="file"></td>
         </tr>
-        {#
-            {% for md in metadata %}
-                <tr><th>{{ md }}</th><td><input type="text" name="{{ md }}"></td></tr>
-            {% endfor %}
-            #}
+        {% for md in metadata %}
+            <tr><th>{{ md }}</th><td><input type="text" name="{{ md }}"></td></tr>
+        {% endfor %}
         <tr>
             <th>&nbsp;</th>
             <td>

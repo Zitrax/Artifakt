@@ -14,7 +14,7 @@ from artifakt.models.models import Artifakt
 
 @view_config(route_name='artifacts', renderer='artifakt:templates/artifacts.jinja2')
 def artifacts(_):
-    return {'artifacts': DBSession.query(Artifakt).all()}
+    return {'artifacts': DBSession.query(Artifakt).order_by(Artifakt.created.desc()).all()}
 
 
 @view_config(route_name='artifacts_json', renderer='json')
