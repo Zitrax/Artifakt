@@ -17,6 +17,7 @@ requires = [
     'zope.sqlalchemy',
     'waitress',
     'pyramid_jinja2',
+    'pyramid_chameleon',
     'mysqlclient'  # Needs libpython3.5-dev
     ]
 
