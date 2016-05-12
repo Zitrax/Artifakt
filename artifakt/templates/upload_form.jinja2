@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="${request.locale_name}">
+<html lang="{{request.locale_name}}">
 <head>
     <title>Upload artifact</title>
     <script src="/js/jquery-2.2.3.min.js"></script>
@@ -8,23 +8,23 @@
 </head>
 <body>
 <form action="/upload" id="upload_form" method="post" enctype="multipart/form-data">
-    <table>
-        <tr>
-            <th>File</th>
-            <td><input type="file" name="file"></td>
-        </tr>
-        {% for key,vals in metadata.items() %}
+
+    <fieldset>
+        <legend>Required</legend>
+        <input type="file" name="file">
+    </fieldset>
+
+    {% for key,vals in metadata.items()|sort %}
+        <fieldset>
+            <legend>{{ key }}</legend>
             {% for val in vals %}
-                <tr><th>{{ key }}.{{ val }}</th><td><input type="text" name="{{ key }}[{{ val }}]"></td></tr>
+                <label for="{{ key }}[{{ val }}]">{{ val }}</label>
+                <input type="text" id="{{ key }}[{{ val }}]" name="{{ key }}[{{ val }}]">
             {% endfor %}
-        {% endfor %}
-        <tr>
-            <th>&nbsp;</th>
-            <td>
-                <button type="submit">Upload file</button>
-            </td>
-        </tr>
-    </table>
+        </fieldset>
+    {% endfor %}
+
+    <button type="submit">Upload file</button>
 </form>
 </body>
 </html>

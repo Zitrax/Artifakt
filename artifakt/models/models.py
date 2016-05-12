@@ -34,12 +34,16 @@ class JSONSerializable(object):
     @staticmethod
     def convert(obj):
         """Makes sure some types can be json serialized"""
+        print(type(obj))
         if hasattr(obj, 'isoformat'):
             return obj.isoformat()
+        elif isinstance(obj, JSONSerializable):
+            return obj.to_dict()
         else:
             return obj
 
     def to_dict(self):
+        print("yxi")
         # noinspection PyUnresolvedReferences
         return {c.name: self.convert(getattr(self, c.name)) for c in self.__table__.columns}
 
