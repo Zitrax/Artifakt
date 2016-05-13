@@ -6,37 +6,21 @@ from tempfile import NamedTemporaryFile
 
 from pyramid.view import view_config
 
-from artifakt.models.models import Artifakt, DBSession, Repository, Vcs
+from artifakt.models.models import Artifakt, DBSession, schemas
 
 
 def validate_metadata(data):
     if not data:
         return data
 
-    def validate(name, values):
-        if name in data:
-            diff = set(data[name].keys()).difference(values)
-            if diff:
-                raise ValueError("Metadata for {} contains unknown/invalid values: {}".format(name, str(diff)))
+    ret = {}
 
-    # FIXME; What to validate can be taken from the metadata_keys
-    validate("artifakt", {'comment'})
-    validate("repository", {'url', 'name'})
-    validate("vcs", {'revision'})
+    for key in data.keys():
+        if key in data:
+            if any(v != '' for v in data[key].values()):
+                ret[key] = schemas[key].make_instance(data[key])
 
-    return data
-
-
-# FIXME: Move
-def get_or_create(session, model, **kwargs):
-    instance = session.query(model).filter_by(**kwargs).first()
-    if instance:
-        return instance
-    else:
-        instance = model(**kwargs)
-        session.add(instance)
-        session.flush()
-        return instance
+    return ret
 
 
 @view_config(route_name='upload', renderer='json', request_method='POST')
@@ -52,13 +36,10 @@ def upload_post(request):
         return {'error': 'Missing file field in POST request'}
 
     metadata = json.loads(request.POST.getone('metadata')) if 'metadata' in request.POST else None
-    validate_metadata(metadata)
-    print(request.POST)
     for item in request.POST.getall('file'):
         tmp = NamedTemporaryFile(delete=False, prefix='artifakt_')
         try:
             sha1_hash = hashlib.sha1()
-            print(item)
             content = item.file.read()
             tmp.write(content)
             sha1_hash.update(content)
@@ -82,19 +63,32 @@ def upload_post(request):
 
             shutil.move(tmp.name, blob)
 
+            # Update metadata with needed additional data
+            if 'artifakt' not in metadata:
+                metadata['artifakt'] = {}
+            metadata['artifakt']['filename'] = item.filename
+            metadata['artifakt']['sha1'] = sha1
+
+            # Will validate and create objects
+            objects = validate_metadata(metadata)
+
+            af = objects['artifakt']
+
+            # TODO: Check if all flushes and adds are needed
             repo = None
-            if 'repository' in metadata:
-                repo = get_or_create(DBSession, Repository, url = metadata['repository']['url'])
-            vcs = None
-            if repo and 'vcs' in metadata:
-                vcs = get_or_create(DBSession, Vcs, repository=repo, revision=metadata['vcs']['revision'])
+            if 'repository' in objects:
+                repo = objects['repository']
+                DBSession.add(repo)
+                DBSession.flush()
+            if repo and 'vcs' in objects:
+                vcs = objects['vcs']
+                vcs.repository = repo
+                DBSession.add(vcs)
+                af.vcs = vcs
 
-            ameta = metadata['artifakt'] if 'artifakt' in metadata else {}
-
-            # noinspection PyArgumentList
-            af = Artifakt(filename=item.filename, sha1=sha1, vcs=vcs, **ameta)
-            artifacts.append(af)
             DBSession.add(af)
+            DBSession.flush()
+            artifacts.append(af)
 
         finally:
             if os.path.exists(tmp.name):

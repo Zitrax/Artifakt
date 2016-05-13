@@ -18,6 +18,7 @@ requires = [
     'waitress',
     'pyramid_jinja2',
     'pyramid_chameleon',
+    'marshmallow-sqlalchemy',
     'mysqlclient'  # Needs libpython3.5-dev
     ]
 

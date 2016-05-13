@@ -1,6 +1,7 @@
 import logging
 import os
 
+from marshmallow_sqlalchemy import ModelSchema, ModelSchemaOpts
 from sqlalchemy import (
     Column,
     String,
@@ -28,22 +29,6 @@ Base = declarative_base()
 storage = None
 
 
-class JSONSerializable(object):
-    """Mixin for adding JSON serialization"""
-
-    @staticmethod
-    def convert(obj):
-        """Makes sure some types can be json serialized"""
-        if hasattr(obj, 'isoformat'):
-            return obj.isoformat()
-        else:
-            return obj
-
-    def to_dict(self):
-        # noinspection PyUnresolvedReferences
-        return {c.name: self.convert(getattr(self, c.name)) for c in self.__table__.columns}
-
-
 def sizeof_fmt(num, suffix='B'):
     for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
         if abs(num) < 1024.0:
@@ -52,16 +37,38 @@ def sizeof_fmt(num, suffix='B'):
     return "%.1f %s%s" % (num, 'Yi', suffix)
 
 
+class BaseOpts(ModelSchemaOpts):
+    def __init__(self, meta):
+        if not hasattr(meta, 'sql_session'):
+            meta.sqla_session = DBSession
+        super(BaseOpts, self).__init__(meta)
+
+
+class BaseSchema(ModelSchema):
+    OPTIONS_CLASS = BaseOpts
+
+
+schemas = {}
+
 # FIXME: Add cascading deletes
 
-class Repository(JSONSerializable, Base):
+
+class Repository(Base):
     __tablename__ = 'repository'
     id = Column(Integer, nullable=False, autoincrement=True, primary_key=True)
     url = Column(String(length=255), nullable=False, unique=True)
     name = Column(Text)
 
 
-class Vcs(JSONSerializable, Base):
+class RepositorySchema(BaseSchema):
+    class Meta:
+        model = Repository
+
+
+schemas['repository'] = RepositorySchema()
+
+
+class Vcs(Base):
     __tablename__ = 'vcs'
     id = Column(Integer, nullable=False, autoincrement=True, primary_key=True)
     repository_id = Column(Integer, ForeignKey("repository.id"), primary_key=True)
@@ -70,7 +77,15 @@ class Vcs(JSONSerializable, Base):
     repository = relationship("Repository")
 
 
-class Artifakt(JSONSerializable, Base):
+class VcsSchema(BaseSchema):
+    class Meta:
+        model = Vcs
+
+
+schemas['vcs'] = VcsSchema()
+
+
+class Artifakt(Base):
     __tablename__ = 'artifakt'
     sha1 = Column(CHAR(length=40), nullable=False, primary_key=True)
     filename = Column(String(length=255), nullable=False)
@@ -114,8 +129,16 @@ class Artifakt(JSONSerializable, Base):
             os.remove(file)
 
 
+class ArtifaktSchema(BaseSchema):
+    class Meta:
+        model = Artifakt
+
+schemas['artifakt'] = ArtifaktSchema()
+
+
 # Would be nice if these could be inside the object instead ...
 
+# noinspection PyUnusedLocal
 @event.listens_for(Artifakt, 'after_delete')
 def artifakt_after_delete(mapper, connection, target):
     """Register a delete on the target

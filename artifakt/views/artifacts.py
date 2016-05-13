@@ -9,7 +9,7 @@ from pyramid.view import view_config
 from sqlalchemy.orm.exc import NoResultFound
 
 from artifakt import DBSession
-from artifakt.models.models import Artifakt
+from artifakt.models.models import Artifakt, schemas
 
 
 @view_config(route_name='artifacts', renderer='artifakt:templates/artifacts.jinja2')
@@ -39,7 +39,7 @@ def artifact(request):
 
 @view_config(route_name='artifact_json', renderer='json')
 def artifact_json(request):
-    return get_artifact(request).to_dict()
+    return schemas['artifakt'].dump(get_artifact(request)).data
 
 
 @view_config(route_name='artifact_delete')
