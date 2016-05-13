@@ -19,6 +19,7 @@ requires = [
     'pyramid_jinja2',
     'pyramid_chameleon',
     'marshmallow-sqlalchemy',
+    'nose',
     'mysqlclient'  # Needs libpython3.5-dev
     ]
 

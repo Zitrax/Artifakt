@@ -1,10 +1,18 @@
+import os
 import unittest
+from cgi import FieldStorage
+from io import BytesIO
+from tempfile import TemporaryDirectory
 
 import transaction
+from nose.tools import assert_in, assert_true
 from pyramid import testing
 from sqlalchemy.exc import OperationalError
+from sqlalchemy.testing import eq_
+from webob.multidict import MultiDict
 
 from artifakt.models.models import DBSession
+from artifakt.views.upload import upload_post
 
 
 class TestMyViewSuccessCondition(unittest.TestCase):
@@ -52,3 +60,42 @@ class TestMyViewFailureCondition(unittest.TestCase):
         request = testing.DummyRequest()
         with self.assertRaises(OperationalError):
             artifacts(request)
+
+
+class TestUpload(unittest.TestCase):
+    def setUp(self):
+        self.config = testing.setUp()
+        from sqlalchemy import create_engine
+        engine = create_engine('sqlite://')
+        from artifakt.models.models import (
+            Base,
+        )
+        DBSession.configure(bind=engine)
+        Base.metadata.create_all(engine)
+
+    def tearDown(self):
+        DBSession.remove()
+        testing.tearDown()
+
+    def test_upload_no_file(self):
+        request = testing.DummyRequest()
+        response = upload_post(request)
+        assert_in('error', response)
+        eq_('Missing file field in POST request', response['error'])
+        eq_(400, request.response.status_code)
+
+    def test_upload(self):
+        fs = FieldStorage()
+        fs.file = BytesIO(b'foo')
+        fs.filename = 'file.foo'
+        fields = MultiDict({'file': fs, 'metadata': '{}'})
+        request = testing.DummyRequest(post=fields)
+        with TemporaryDirectory() as tmp_dir:
+            request.registry.settings['artifakt.storage'] = tmp_dir
+            response = upload_post(request)
+            assert_in('artifacts', response)
+            eq_(1, len(response['artifacts']))
+            sha1 = response['artifacts'][0]
+            eq_(200, request.response.status_code)
+            target = os.path.join(tmp_dir, sha1[0:2], sha1[2:])
+            assert_true(os.path.exists(target), target)

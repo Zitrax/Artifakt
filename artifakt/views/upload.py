@@ -31,9 +31,10 @@ def upload_post(request):
     # TODO: Use a transaction to rollback everything if something failed
     artifacts = []
 
-    if "file" not in request.POST:
-        request.response.status = 400
-        return {'error': 'Missing file field in POST request'}
+    for field in ['file', 'metadata']:
+        if field not in request.POST:
+            request.response.status = 400
+            return {'error': 'Missing {} field in POST request'.format(field)}
 
     metadata = json.loads(request.POST.getone('metadata')) if 'metadata' in request.POST else None
     for item in request.POST.getall('file'):

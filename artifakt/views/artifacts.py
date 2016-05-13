@@ -90,7 +90,7 @@ def artifact_archive_view(request):
             ret['tarfiles'] = tar.getmembers()
             return ret
     if mime == "application/zip":
-        with zipfile.ZipFile(af.file) as zip:
-            ret['zipfiles'] = zip.infolist()
+        with zipfile.ZipFile(af.file) as _zip:
+            ret['zipfiles'] = _zip.infolist()
             return ret
     return {"error": "Mimetype {} is not a known/supported archive".format(mime)}

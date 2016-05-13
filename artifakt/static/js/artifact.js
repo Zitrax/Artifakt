@@ -1,6 +1,6 @@
 $(function () {
     $("form.view_content").submit(function (e) {
-        fsize = parseInt($('#file_size').text());
+        var fsize = parseInt($('#file_size').text());
         if(fsize > 2000000 &&
             !$(this).hasClass('confirmed')) {
             e.preventDefault();
