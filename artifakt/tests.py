@@ -72,6 +72,7 @@ class TestUpload(unittest.TestCase):
         )
         DBSession.configure(bind=engine)
         Base.metadata.create_all(engine)
+        self.tmp_dir = TemporaryDirectory()
 
     def tearDown(self):
         DBSession.remove()
@@ -84,18 +85,32 @@ class TestUpload(unittest.TestCase):
         eq_('Missing file field in POST request', response['error'])
         eq_(400, request.response.status_code)
 
-    def test_upload(self):
+    def upload_request(self, content, name, metadata=None):
+        if metadata is None:
+            metadata = '{}'
         fs = FieldStorage()
-        fs.file = BytesIO(b'foo')
-        fs.filename = 'file.foo'
-        fields = MultiDict({'file': fs, 'metadata': '{}'})
+        fs.file = BytesIO(content)
+        fs.filename = name
+        fields = MultiDict({'file': fs, 'metadata': metadata})
         request = testing.DummyRequest(post=fields)
-        with TemporaryDirectory() as tmp_dir:
-            request.registry.settings['artifakt.storage'] = tmp_dir
-            response = upload_post(request)
-            assert_in('artifacts', response)
-            eq_(1, len(response['artifacts']))
-            sha1 = response['artifacts'][0]
-            eq_(200, request.response.status_code)
-            target = os.path.join(tmp_dir, sha1[0:2], sha1[2:])
-            assert_true(os.path.exists(target), target)
+        request.registry.settings['artifakt.storage'] = self.tmp_dir.name
+        return request
+
+    def test_upload(self):
+        # Upload a new file
+        request = self.upload_request(b'foo', 'file.foo')
+        response = upload_post(request)
+        assert_in('artifacts', response)
+        eq_(1, len(response['artifacts']))
+        sha1 = response['artifacts'][0]
+        eq_(200, request.response.status_code)
+        target = os.path.join(self.tmp_dir.name, sha1[0:2], sha1[2:])
+        assert_true(os.path.exists(target), target)
+
+        # Try the same again and we should get error
+        request = self.upload_request(b'foo', 'file.foo')
+        response = upload_post(request)
+        assert_in('error', response)
+        eq_('Artifact with sha1 {} already exists'.format(sha1), response['error'])
+        eq_(409, request.response.status_code)
+
