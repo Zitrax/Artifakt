@@ -1,6 +1,7 @@
 import logging
 import os
 
+from marshmallow import fields
 from marshmallow_sqlalchemy import ModelSchema, ModelSchemaOpts
 from sqlalchemy import (
     Column,
@@ -83,6 +84,7 @@ class Vcs(Base):
 
 
 class VcsSchema(BaseSchema):
+    repository = fields.Nested(RepositorySchema, exclude=('id',))
     class Meta:
         model = Vcs
 
@@ -123,7 +125,7 @@ class Artifakt(Base):
     def metadata_keys():
         # TODO: Extract ths automatically along with types
         return {'artifakt': ['comment'],
-                'repository': ['url', 'name'],
+                'repository': ['url', 'name', 'type'],
                 'vcs': ['revision']}
 
     def _delete(self):
@@ -135,6 +137,7 @@ class Artifakt(Base):
 
 
 class ArtifaktSchema(BaseSchema):
+    vcs = fields.Nested(VcsSchema, exclude=('id',))
     class Meta:
         model = Artifakt
 

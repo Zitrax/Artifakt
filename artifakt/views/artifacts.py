@@ -19,7 +19,7 @@ def artifacts(_):
 
 @view_config(route_name='artifacts_json', renderer='json')
 def artifacts_json(_):
-    return {'artifacts': [a.to_dict() for a in DBSession.query(Artifakt).all()]}
+    return {'artifacts': [schemas['artifakt'].dump(a).data for a in DBSession.query(Artifakt).all()]}
 
 
 def get_artifact(request):
