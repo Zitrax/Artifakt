@@ -1,3 +1,4 @@
+import json
 import os
 import unittest
 from cgi import FieldStorage
@@ -11,8 +12,15 @@ from sqlalchemy.exc import OperationalError
 from sqlalchemy.testing import eq_
 from webob.multidict import MultiDict
 
-from artifakt.models.models import DBSession
+from artifakt.models.models import DBSession, Artifakt
 from artifakt.views.upload import upload_post
+
+
+# Enable to see SQL logs
+# import logging
+# log = logging.getLogger("sqlalchemy")
+# log.addHandler(logging.StreamHandler())
+# log.setLevel(logging.DEBUG)
 
 
 class TestMyViewSuccessCondition(unittest.TestCase):
@@ -67,9 +75,7 @@ class TestUpload(unittest.TestCase):
         self.config = testing.setUp()
         from sqlalchemy import create_engine
         engine = create_engine('sqlite://')
-        from artifakt.models.models import (
-            Base,
-        )
+        from artifakt.models.models import Base
         DBSession.configure(bind=engine)
         Base.metadata.create_all(engine)
         self.tmp_dir = TemporaryDirectory()
@@ -113,4 +119,28 @@ class TestUpload(unittest.TestCase):
         assert_in('error', response)
         eq_('Artifact with sha1 {} already exists'.format(sha1), response['error'])
         eq_(409, request.response.status_code)
+
+    def test_upload_with_metadata(self):
+        metadata = {'artifakt': {'comment': 'test'},
+                    'repository': {'url': 'r-url', 'name': 'r-name'},
+                    'vcs': {'revision': '1'}}
+        request = self.upload_request(b'foo', 'file.foo', metadata=json.dumps(metadata))
+        response = upload_post(request)
+        assert_in('artifacts', response)
+        eq_(1, len(response['artifacts']))
+        sha1 = response['artifacts'][0]
+        eq_(200, request.response.status_code)
+        target = os.path.join(self.tmp_dir.name, sha1[0:2], sha1[2:])
+        assert_true(os.path.exists(target), target)
+
+        # Verify metadata
+        af = DBSession.query(Artifakt).filter(Artifakt.sha1 == sha1).one()
+        eq_('file.foo', af.filename)
+        eq_(sha1, af.sha1)
+        eq_('test', af.comment)
+        eq_(1, af.vcs_id)
+        eq_(1, af.vcs.id)
+        eq_('1', af.vcs.revision)
+        eq_('r-url', af.vcs.repository.url)
+        eq_('r-name', af.vcs.repository.name)
 

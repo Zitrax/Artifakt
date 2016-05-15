@@ -4,13 +4,14 @@ import os
 from marshmallow_sqlalchemy import ModelSchema, ModelSchemaOpts
 from sqlalchemy import (
     Column,
-    String,
-    Text,
     CHAR,
     DateTime,
     event,
     Integer,
-    ForeignKey
+    ForeignKey,
+    UniqueConstraint,
+    Unicode,
+    UnicodeText
     )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import (
@@ -56,8 +57,8 @@ schemas = {}
 class Repository(Base):
     __tablename__ = 'repository'
     id = Column(Integer, nullable=False, autoincrement=True, primary_key=True)
-    url = Column(String(length=255), nullable=False, unique=True)
-    name = Column(Text)
+    url = Column(Unicode(length=255), nullable=False, unique=True)
+    name = Column(UnicodeText)
 
 
 class RepositorySchema(BaseSchema):
@@ -71,8 +72,10 @@ schemas['repository'] = RepositorySchema()
 class Vcs(Base):
     __tablename__ = 'vcs'
     id = Column(Integer, nullable=False, autoincrement=True, primary_key=True)
-    repository_id = Column(Integer, ForeignKey("repository.id"), primary_key=True)
-    revision = Column(CHAR(length=40), nullable=False, primary_key=True)
+    repository_id = Column(Integer, ForeignKey("repository.id"))
+    revision = Column(CHAR(length=40), nullable=False)
+
+    UniqueConstraint('repository_id', 'revision', name='rr')
 
     repository = relationship("Repository")
 
@@ -88,8 +91,8 @@ schemas['vcs'] = VcsSchema()
 class Artifakt(Base):
     __tablename__ = 'artifakt'
     sha1 = Column(CHAR(length=40), nullable=False, primary_key=True)
-    filename = Column(String(length=255), nullable=False)
-    comment = Column(Text)
+    filename = Column(Unicode(length=255), nullable=False)
+    comment = Column(UnicodeText)
     created = Column(DateTime, default=func.now())
     vcs_id = Column(Integer, ForeignKey("vcs.id"))
 

@@ -14,7 +14,6 @@ def validate_metadata(data):
         return data
 
     ret = {}
-
     for key in data.keys():
         if key in data:
             if any(v != '' for v in data[key].values()):
@@ -75,20 +74,15 @@ def upload_post(request):
 
             af = objects['artifakt']
 
-            # TODO: Check if all flushes and adds are needed
             repo = None
             if 'repository' in objects:
                 repo = objects['repository']
-                DBSession.add(repo)
-                DBSession.flush()
             if repo and 'vcs' in objects:
                 vcs = objects['vcs']
                 vcs.repository = repo
-                DBSession.add(vcs)
                 af.vcs = vcs
 
             DBSession.add(af)
-            DBSession.flush()
             artifacts.append(af)
 
         finally:
