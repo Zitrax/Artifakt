@@ -27,7 +27,6 @@ def upload_post(request):
     # TODO: Handle known exceptions better instead of default 500
     # TODO: Allow multiple files ? ( it gets complicated with http status )
     # TODO: Check performance and memory usage. Might need to read and write in chunks
-    # TODO: Use a transaction to rollback everything if something failed
     artifacts = []
 
     for field in ['file', 'metadata']:
@@ -38,6 +37,7 @@ def upload_post(request):
     metadata = json.loads(request.POST.getone('metadata')) if 'metadata' in request.POST else None
     for item in request.POST.getall('file'):
         tmp = NamedTemporaryFile(delete=False, prefix='artifakt_')
+        blob = None
         try:
             sha1_hash = hashlib.sha1()
             content = item.file.read()
@@ -84,7 +84,11 @@ def upload_post(request):
 
             DBSession.add(af)
             artifacts.append(af)
-
+            DBSession.flush()
+        except Exception:
+            if os.path.exists(blob):
+                os.remove(blob)
+            raise
         finally:
             if os.path.exists(tmp.name):
                 os.remove(tmp.name)

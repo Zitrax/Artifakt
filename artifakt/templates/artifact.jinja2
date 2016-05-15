@@ -10,7 +10,7 @@
     {% for col in artifact.__table__.columns %}
         <tr><th>{{ col.name|capitalize }}</th><td>{{ artifact|attr(col.name) }}</td></tr>
     {% endfor %}
-    <tr><th>File size</th><td id="file_size">{{ artifact.size }} ({{ artifact.size_h }})</td></tr>
+    <tr><th>File size</th><td id="file_size">{{ artifact.size_h }} ({{ artifact.size }} bytes)</td></tr>
 </table>
 <table>
     <tr>

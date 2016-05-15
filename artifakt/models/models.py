@@ -11,7 +11,8 @@ from sqlalchemy import (
     ForeignKey,
     UniqueConstraint,
     Unicode,
-    UnicodeText
+    UnicodeText,
+    Enum
     )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import (
@@ -59,6 +60,7 @@ class Repository(Base):
     id = Column(Integer, nullable=False, autoincrement=True, primary_key=True)
     url = Column(Unicode(length=255), nullable=False, unique=True)
     name = Column(UnicodeText)
+    type = Column(Enum("git", "svn", name="type_enum"), nullable=False)
 
 
 class RepositorySchema(BaseSchema):

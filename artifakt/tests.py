@@ -6,9 +6,9 @@ from io import BytesIO
 from tempfile import TemporaryDirectory
 
 import transaction
-from nose.tools import assert_in, assert_true
+from nose.tools import assert_in, assert_true, assert_raises
 from pyramid import testing
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import OperationalError, IntegrityError
 from sqlalchemy.testing import eq_
 from webob.multidict import MultiDict
 
@@ -17,10 +17,10 @@ from artifakt.views.upload import upload_post
 
 
 # Enable to see SQL logs
-# import logging
-# log = logging.getLogger("sqlalchemy")
-# log.addHandler(logging.StreamHandler())
-# log.setLevel(logging.DEBUG)
+#import logging
+#log = logging.getLogger("sqlalchemy")
+#log.addHandler(logging.StreamHandler())
+#log.setLevel(logging.DEBUG)
 
 
 class TestMyViewSuccessCondition(unittest.TestCase):
@@ -122,7 +122,7 @@ class TestUpload(unittest.TestCase):
 
     def test_upload_with_metadata(self):
         metadata = {'artifakt': {'comment': 'test'},
-                    'repository': {'url': 'r-url', 'name': 'r-name'},
+                    'repository': {'url': 'r-url', 'name': 'r-name', 'type': 'git'},
                     'vcs': {'revision': '1'}}
         request = self.upload_request(b'foo', 'file.foo', metadata=json.dumps(metadata))
         response = upload_post(request)
@@ -144,3 +144,20 @@ class TestUpload(unittest.TestCase):
         eq_('r-url', af.vcs.repository.url)
         eq_('r-name', af.vcs.repository.name)
 
+    def test_upload_with_metadata_invalid(self):
+        metadata = {'artifakt': {'comment': 'test'},
+                    'repository': {'url': 'r-url', 'name': 'r-name'},
+                    'vcs': {'revision': '1'}}
+        request = self.upload_request(b'foo', 'file.foo', metadata=json.dumps(metadata))
+        assert_raises(IntegrityError, upload_post, request)
+        DBSession.rollback()
+
+        # Now there should be neither an artifakt object or a file
+        def count_files(path):
+            x = 0
+            for root, dirs, files in os.walk(path):
+                x += len(files)
+            return x
+
+        eq_(0, count_files(self.tmp_dir.name))
+        eq_(0, DBSession.query(Artifakt).count())
