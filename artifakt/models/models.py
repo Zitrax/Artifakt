@@ -1,4 +1,5 @@
 import logging
+import mimetypes
 import os
 
 from marshmallow import fields
@@ -120,6 +121,15 @@ class Artifakt(Base):
     def size_h(self):
         """Human readable size"""
         return sizeof_fmt(self.size)
+
+    @property
+    def mime(self):
+        mime, encoding = mimetypes.guess_type(self.filename)
+        return mime
+
+    @property
+    def is_archive(self):
+        return self.mime in ['application/x-tar', 'application/zip']
 
     @staticmethod
     def metadata_keys():

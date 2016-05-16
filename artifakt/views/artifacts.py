@@ -82,8 +82,7 @@ def artifact_inline_view(request):
 @view_config(route_name='artifact_view_archive', renderer="artifakt:templates/artifact_archive.jinja2")
 def artifact_archive_view(request):
     af = get_artifact(request)
-    file_name = af.filename
-    mime, encoding = mimetypes.guess_type(file_name)
+    mime = af.mime
     ret = defaultdict(list)
     if mime == "application/x-tar":
         with tarfile.open(af.file) as tar:

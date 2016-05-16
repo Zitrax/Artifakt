@@ -11,7 +11,9 @@
     <tr><th>File name</th><td>{{ artifact.filename }}</td></tr>
     <tr><th>File size</th><td id="file_size">{{ artifact.size_h }} ({{ artifact.size }} bytes)</td></tr>
     <tr><th>Created</th><td>{{ artifact.created }}</td></tr>
+    {% if artifact.comment %}
     <tr><th>Comment</th><td>{{ artifact.comment }}</td></tr>
+    {% endif %}
     <tr><th></th><td></td></tr>
 </table>
 
@@ -28,7 +30,9 @@
     <tr>
         <td><form action="/artifact/{{ artifact.sha1 }}/download"><input type="submit" value="Download"></form></td>
         <td><form class="view_content" action="/artifact/{{ artifact.sha1 }}/view_raw"><input type="submit" value="View raw"></form></td>
-        <td><form action="/artifact/{{ artifact.sha1 }}/view_archive"><input type="submit" value="&#x1f4c2; View archive"></form></td>
+        {% if artifact.is_archive %}
+            <td><form action="/artifact/{{ artifact.sha1 }}/view_archive"><input type="submit" value="&#x1f4c2; View archive"></form></td>
+        {% endif %}
         <td><form class="view_content"action="/artifact/{{ artifact.sha1 }}/view"><input type="submit" value="View highlight"></form></td>
         <td><form action="/artifact/{{ artifact.sha1 }}/delete"><input type="submit" value="&#x1f5d1; Delete"></form></td>
     </tr>
