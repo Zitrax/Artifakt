@@ -10,6 +10,7 @@
 <table>
     <tr><th>File name</th><td>{{ artifact.filename }}</td></tr>
     <tr><th>File size</th><td id="file_size">{{ artifact.size_h }} ({{ artifact.size }} bytes)</td></tr>
+    <tr><th>SHA1</th><td>{{ artifact.sha1 }}</td></tr>
     <tr><th>Created</th><td>{{ artifact.created }}</td></tr>
     {% if artifact.comment %}
     <tr><th>Comment</th><td>{{ artifact.comment }}</td></tr>

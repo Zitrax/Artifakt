@@ -3,10 +3,10 @@ import tarfile
 import zipfile
 from collections import defaultdict
 
-from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest
+from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest, HTTPConflict
 from pyramid.response import Response, FileResponse
 from pyramid.view import view_config
-from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 from artifakt import DBSession
 from artifakt.models.models import Artifakt, schemas
@@ -27,7 +27,12 @@ def get_artifact(request):
         raise HTTPBadRequest("Missing sha1 argument")
     sha1 = request.matchdict["sha1"]
     try:
-        return DBSession.query(Artifakt).filter(Artifakt.sha1 == sha1).one()
+        if len(sha1) == 40:
+            return DBSession.query(Artifakt).filter(Artifakt.sha1 == sha1).one()
+        else:
+            return DBSession.query(Artifakt).filter(Artifakt.sha1.like(sha1 + '%')).one()
+    except MultipleResultsFound:
+        raise HTTPConflict("This abbreviated sha1 matches multiple artifacts")
     except NoResultFound:
         raise HTTPNotFound("No artifact with sha1 {} found".format(sha1))
 
