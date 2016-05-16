@@ -6,13 +6,15 @@ from io import BytesIO
 from tempfile import TemporaryDirectory
 
 import transaction
-from nose.tools import assert_in, assert_true, assert_raises
+from nose.tools import assert_in, assert_true, assert_raises, assert_is_not_none, assert_false, assert_is_none
 from pyramid import testing
 from sqlalchemy.exc import OperationalError, IntegrityError
 from sqlalchemy.testing import eq_
 from webob.multidict import MultiDict
 
+from artifakt.models import models
 from artifakt.models.models import DBSession, Artifakt
+from artifakt.views.artifacts import artifact_delete
 from artifakt.views.upload import upload_post
 
 
@@ -70,7 +72,7 @@ class TestMyViewFailureCondition(unittest.TestCase):
             artifacts(request)
 
 
-class TestUpload(unittest.TestCase):
+class TestArtifact(unittest.TestCase):
     def setUp(self):
         self.config = testing.setUp()
         from sqlalchemy import create_engine
@@ -79,6 +81,7 @@ class TestUpload(unittest.TestCase):
         DBSession.configure(bind=engine)
         Base.metadata.create_all(engine)
         self.tmp_dir = TemporaryDirectory()
+        models.storage = self.tmp_dir.name
 
     def tearDown(self):
         DBSession.remove()
@@ -91,6 +94,11 @@ class TestUpload(unittest.TestCase):
         eq_('Missing file field in POST request', response['error'])
         eq_(400, request.response.status_code)
 
+    def generic_request(self, *args, **kwargs):
+        request = testing.DummyRequest(*args, **kwargs)
+        request.registry.settings['artifakt.storage'] = self.tmp_dir.name
+        return request
+
     def upload_request(self, content, name, metadata=None):
         if metadata is None:
             metadata = '{}'
@@ -98,9 +106,7 @@ class TestUpload(unittest.TestCase):
         fs.file = BytesIO(content)
         fs.filename = name
         fields = MultiDict({'file': fs, 'metadata': metadata})
-        request = testing.DummyRequest(post=fields)
-        request.registry.settings['artifakt.storage'] = self.tmp_dir.name
-        return request
+        return self.generic_request(post=fields)
 
     def test_upload(self):
         # Upload a new file
@@ -161,3 +167,21 @@ class TestUpload(unittest.TestCase):
 
         eq_(0, count_files(self.tmp_dir.name))
         eq_(0, DBSession.query(Artifakt).count())
+
+    def test_delete(self):
+        # Upload an artifact, and check that file exists
+        request = self.upload_request(b'foo', 'file.foo')
+        upload_post(request)
+        eq_(200, request.response.status_code)
+        af = DBSession.query(Artifakt).one()
+        assert_is_not_none(af)
+        file_path = af.file
+        assert_true(os.path.exists(file_path))
+        # Now delete and verify that both file and artifact are deleted
+        request = self.generic_request()
+        request.matchdict.update({'sha1': af.sha1})
+        artifact_delete(request)
+        # FIXME: Investigate this: http://stackoverflow.com/a/23176618/11722
+        transaction.commit()  # TODO: Better way to test this ? We must commit for the file to go away.
+        assert_false(os.path.exists(file_path))
+        assert_is_none(DBSession.query(Artifakt).one_or_none())
