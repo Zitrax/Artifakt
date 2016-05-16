@@ -1,31 +1,35 @@
 <!DOCTYPE html>
 <html lang="{{request.locale_name}}">
 <head>
+    {% include 'head.jinja2' %}
     <title>Upload artifact</title>
-    <script src="/js/jquery-2.2.3.min.js"></script>
     <script src="/js/jquery.serialize-object.min.js"></script>
     <script src="/js/upload.js"></script>
-    {% include 'head.jinja2' %}
 </head>
 <body>
+
+<div class="container">
 <form action="/upload" id="upload_form" method="post" enctype="multipart/form-data">
 
-    <fieldset>
-        <legend>Required</legend>
-        <input type="file" name="file">
-    </fieldset>
+    <div class="form-group">
+        <label for="file">File:</label>
+        <input class="form-control" id="file" type="file" name="file">
+    </div>
 
     {% for key,vals in metadata.items()|sort %}
         <fieldset>
-            <legend>{{ key }}</legend>
-            {% for val in vals %}
-                <label for="{{ key }}[{{ val }}]">{{ val }}</label>
-                <input type="text" id="{{ key }}[{{ val }}]" name="{{ key }}[{{ val }}]">
-            {% endfor %}
+            <div class="form-group">
+                <legend class="bg-info">{{ key|capitalize }}</legend>
+                {% for val in vals %}
+                    <label for="{{ key }}[{{ val }}]">{{ val|capitalize }}</label>
+                    <input class="form-control" type="text" id="{{ key }}[{{ val }}]" name="{{ key }}[{{ val }}]">
+                {% endfor %}
+            </div>
         </fieldset>
     {% endfor %}
 
     <button type="submit">Upload file</button>
 </form>
+</div>
 </body>
 </html>

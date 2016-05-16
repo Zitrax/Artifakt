@@ -1,15 +1,23 @@
 <!DOCTYPE html>
 <html lang="{{request.locale_name}}">
 <head>
-    <title>Artifakt</title>
     {% include 'head.jinja2' %}
+    <title>Artifakt</title>
 </head>
 <body>
-<p>Welcome to the Artifakt server</p>
+<h3>Welcome to the Artifakt server</h3>
 
-    <ul>
-        <li><a href="artifacts">List artifacts</a></li>
-        <li><a href="upload">Upload artifact</a></li>
+    <ul class="list-group">
+        <a class="list-group-item active" href="artifacts">
+            <h4 class="list-group-item-heading">List</h4>
+            <p class="list-group-item-text">List all artifacts in the database.</p>
+
+        </a>
+        <a class="list-group-item active" href="upload">
+            <h4 class="list-group-item-heading">Upload</h4>
+            <p class="list-group-item-text">Upload form for adding new artifacts.</p>
+        </a>
     </ul>
+
 </body>
 </html>
