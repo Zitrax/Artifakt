@@ -2,7 +2,6 @@ import hashlib
 import json
 import os
 import shutil
-from tempfile import NamedTemporaryFile
 
 from pyramid.view import view_config
 
@@ -36,12 +35,10 @@ def upload_post(request):
 
     metadata = json.loads(request.POST.getone('metadata')) if 'metadata' in request.POST else None
     for item in request.POST.getall('file'):
-        tmp = NamedTemporaryFile(delete=False, prefix='artifakt_')
         blob = None
         try:
             sha1_hash = hashlib.sha1()
             content = item.file.read()
-            tmp.write(content)
             sha1_hash.update(content)
             sha1 = sha1_hash.hexdigest()
 
@@ -61,8 +58,8 @@ def upload_post(request):
                 request.response.status = 409  # Conflict
                 return {'error': "File with sha1 {} already exists".format(sha1)}
 
-            # Must use copy instead of move due to Windows file-in-use issues
-            shutil.copy(tmp.name, blob)
+            with open(blob, 'wb') as blob_file:
+                shutil.copyfileobj(item.file, blob_file)
 
             # Update metadata with needed additional data
             if 'artifakt' not in metadata:
@@ -90,10 +87,6 @@ def upload_post(request):
             if os.path.exists(blob):
                 os.remove(blob)
             raise
-        finally:
-            tmp.close()
-            if os.path.exists(tmp.name):
-                os.remove(tmp.name)
 
     return {"artifacts": [a.sha1 for a in artifacts]}
 
