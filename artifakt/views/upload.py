@@ -58,6 +58,7 @@ def upload_post(request):
                 request.response.status = 409  # Conflict
                 return {'error': "File with sha1 {} already exists".format(sha1)}
 
+            item.file.seek(0)
             with open(blob, 'wb') as blob_file:
                 shutil.copyfileobj(item.file, blob_file)
 

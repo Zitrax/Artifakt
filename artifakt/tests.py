@@ -6,7 +6,8 @@ from io import BytesIO
 from tempfile import TemporaryDirectory
 
 import transaction
-from nose.tools import assert_in, assert_true, assert_raises, assert_is_not_none, assert_false, assert_is_none
+from nose.tools import assert_in, assert_true, assert_raises, assert_is_not_none,\
+    assert_false, assert_is_none, assert_greater
 from pyramid import testing
 from sqlalchemy.exc import OperationalError, IntegrityError
 from sqlalchemy.testing import eq_
@@ -118,6 +119,7 @@ class TestArtifact(unittest.TestCase):
         eq_(200, request.response.status_code)
         target = os.path.join(self.tmp_dir.name, sha1[0:2], sha1[2:])
         assert_true(os.path.exists(target), target)
+        assert_greater(os.path.getsize(target), 0)
 
         # Try the same again and we should get error
         request = self.upload_request(b'foo', 'file.foo')
