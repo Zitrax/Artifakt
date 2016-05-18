@@ -89,11 +89,11 @@ def artifact_archive_view(request):
     af = get_artifact(request)
     mime = af.mime
     ret = defaultdict(list)
-    if mime == "application/x-tar":
+    if mime == 'application/x-tar':
         with tarfile.open(af.file) as tar:
             ret['tarfiles'] = tar.getmembers()
             return ret
-    if mime == "application/zip":
+    if mime in ['application/zip', 'application/x-zip-compressed']:
         with zipfile.ZipFile(af.file) as _zip:
             ret['zipfiles'] = _zip.infolist()
             return ret

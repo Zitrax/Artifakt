@@ -129,7 +129,8 @@ class Artifakt(Base):
 
     @property
     def is_archive(self):
-        return self.mime in ['application/x-tar', 'application/zip']
+        # FIXME: Do not duplicate this and in the view
+        return self.mime in ['application/x-tar', 'application/zip', 'application/x-zip-compressed']
 
     @staticmethod
     def metadata_keys():
