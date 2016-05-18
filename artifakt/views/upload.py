@@ -61,7 +61,8 @@ def upload_post(request):
                 request.response.status = 409  # Conflict
                 return {'error': "File with sha1 {} already exists".format(sha1)}
 
-            shutil.move(tmp.name, blob)
+            # Must use copy instead of move due to Windows file-in-use issues
+            shutil.copy(tmp.name, blob)
 
             # Update metadata with needed additional data
             if 'artifakt' not in metadata:
@@ -90,6 +91,7 @@ def upload_post(request):
                 os.remove(blob)
             raise
         finally:
+            tmp.close()
             if os.path.exists(tmp.name):
                 os.remove(tmp.name)
 
