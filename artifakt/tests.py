@@ -16,7 +16,7 @@ from webob.multidict import MultiDict
 from artifakt.models import models
 from artifakt.models.models import DBSession, Artifakt
 from artifakt.utils.file import count_files
-from artifakt.views.artifacts import artifact_delete
+from artifakt.views.artifacts import artifact_delete, artifact_download
 from artifakt.views.upload import upload_post
 
 
@@ -165,12 +165,15 @@ class TestArtifact(unittest.TestCase):
         eq_(0, count_files(self.tmp_dir.name))
         eq_(0, DBSession.query(Artifakt).count())
 
-    def test_delete(self):
-        # Upload an artifact, and check that file exists
+    def simple_upload(self):
         request = self.upload_request(b'foo', 'file.foo')
         upload_post(request)
         eq_(200, request.response.status_code)
-        af = DBSession.query(Artifakt).one()
+        return DBSession.query(Artifakt).one()
+
+    def test_delete(self):
+        # Upload an artifact, and check that file exists
+        af = self.simple_upload()
         assert_is_not_none(af)
         file_path = af.file
         assert_true(os.path.exists(file_path))
@@ -183,3 +186,13 @@ class TestArtifact(unittest.TestCase):
         assert_false(os.path.exists(file_path))
         assert_false(os.path.exists(os.path.dirname(file_path)))
         assert_is_none(DBSession.query(Artifakt).one_or_none())
+
+    def test_download(self):
+        af = self.simple_upload()
+        request = testing.DummyRequest()
+        request.matchdict.update({'sha1': af.sha1})
+        response = artifact_download(request, inline=False)
+        eq_(200, response.status_code)
+        response = artifact_download(request, inline=True)
+        eq_(200, response.status_code)
+        # TODO: Verify downloaded file
