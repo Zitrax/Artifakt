@@ -1,6 +1,7 @@
 import logging
 import mimetypes
 import os
+from os.path import dirname
 
 from marshmallow import fields
 from marshmallow_sqlalchemy import ModelSchema, ModelSchemaOpts
@@ -25,8 +26,11 @@ from sqlalchemy.orm.session import object_session, Session
 from sqlalchemy.sql import func
 from zope.sqlalchemy import ZopeTransactionExtension
 
+from artifakt.utils.file import count_files
+
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
+logger = logging.getLogger(__name__)
 
 # Set by main
 # FIXME: Is there a better way ?
@@ -86,6 +90,7 @@ class Vcs(Base):
 
 class VcsSchema(BaseSchema):
     repository = fields.Nested(RepositorySchema, exclude=('id',))
+
     class Meta:
         model = Vcs
 
@@ -142,13 +147,19 @@ class Artifakt(Base):
     def _delete(self):
         """Called by events - should not be manually invoked"""
         file = self.file
-        logging.getLogger(__name__).info("Deleting: " + file)
+        logger.info("Deleting: " + file)
         if os.path.exists(file):
             os.remove(file)
+            tdir = dirname(file)
+            # FIXME: Tiny risk of deleting this dir while another upload tries to use it
+            if count_files(tdir) == 0:
+                logger.info("Deleting: " + tdir)
+                os.rmdir(tdir)
 
 
 class ArtifaktSchema(BaseSchema):
     vcs = fields.Nested(VcsSchema, exclude=('id',))
+
     class Meta:
         model = Artifakt
 

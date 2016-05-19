@@ -15,15 +15,16 @@ from webob.multidict import MultiDict
 
 from artifakt.models import models
 from artifakt.models.models import DBSession, Artifakt
+from artifakt.utils.file import count_files
 from artifakt.views.artifacts import artifact_delete
 from artifakt.views.upload import upload_post
 
 
 # Enable to see SQL logs
-#import logging
-#log = logging.getLogger("sqlalchemy")
-#log.addHandler(logging.StreamHandler())
-#log.setLevel(logging.DEBUG)
+# import logging
+# log = logging.getLogger("sqlalchemy")
+# log.addHandler(logging.StreamHandler())
+# log.setLevel(logging.DEBUG)
 
 
 class TestMyViewSuccessCondition(unittest.TestCase):
@@ -161,12 +162,6 @@ class TestArtifact(unittest.TestCase):
         DBSession.rollback()
 
         # Now there should be neither an artifakt object or a file
-        def count_files(path):
-            x = 0
-            for root, dirs, files in os.walk(path):
-                x += len(files)
-            return x
-
         eq_(0, count_files(self.tmp_dir.name))
         eq_(0, DBSession.query(Artifakt).count())
 
@@ -186,4 +181,5 @@ class TestArtifact(unittest.TestCase):
         # FIXME: Investigate this: http://stackoverflow.com/a/23176618/11722
         transaction.commit()  # TODO: Better way to test this ? We must commit for the file to go away.
         assert_false(os.path.exists(file_path))
+        assert_false(os.path.exists(os.path.dirname(file_path)))
         assert_is_none(DBSession.query(Artifakt).one_or_none())
