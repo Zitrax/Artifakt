@@ -6,6 +6,8 @@
     <script src="/js/artifact.js"></script>
 </head>
 <body>
+{% include 'navbar.jinja2' %}
+<div class="container">
 <div class="panel panel-success">
     <div class="panel-heading">
         <h3 class="panel-title">{{ artifact.filename }}</h3>
@@ -15,7 +17,7 @@
 
         <table class="table table-striped table-hover">
             <tr><th>File size</th><td id="file_size">{{ artifact.size_h }} ({{ artifact.size }} bytes)</td></tr>
-            <tr><th>SHA1</th><td>{{ artifact.sha1 }}</td></tr>
+            <tr><th>SHA1</th><td><code>{{ artifact.sha1 }}</code></td></tr>
             <tr><th>Created</th><td>{{ artifact.created }}</td></tr>
             {% if artifact.comment %}
                 <tr><th>Comment</th><td>{{ artifact.comment }}</td></tr>
@@ -48,6 +50,7 @@
             <input type="submit" class="btn btn-sm btn-danger" value="&#x1f5d1; Delete">
         </form>
     </div>
+</div>
 </div>
 </body>
 </html>
