@@ -1,6 +1,7 @@
 import logging
 import mimetypes
 import os
+from datetime import datetime
 from os.path import dirname
 
 from marshmallow import fields
@@ -27,6 +28,7 @@ from sqlalchemy.sql import func
 from zope.sqlalchemy import ZopeTransactionExtension
 
 from artifakt.utils.file import count_files
+from artifakt.utils.time import duration_string
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
@@ -107,6 +109,10 @@ class Artifakt(Base):
     vcs_id = Column(Integer, ForeignKey("vcs.id"))
 
     vcs = relationship("Vcs")
+
+    @property
+    def age(self):
+        return duration_string((datetime.now() - self.created).total_seconds())
 
     @property
     def file(self):
