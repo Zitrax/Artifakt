@@ -121,7 +121,14 @@ class Artifakt(Base):
     @property
     def size(self):
         # TODO: Possibly it's better to store this in the db - since size should not change anyway
-        return os.path.getsize(self.file)
+        try:
+            return os.path.getsize(self.file)
+        except FileNotFoundError:
+            return 0
+
+    @property
+    def exists(self):
+        return os.path.exists(self.file)
 
     @property
     def file_content(self):
