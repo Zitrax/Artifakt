@@ -11,8 +11,12 @@ Getting Started
 
 - $VENV/bin/python setup.py develop
 
-- Create a new database named 'artifaktdb' in mysql
-- Use the following command: CREATE DATABASE artifaktdb CHARACTER SET utf8;
+MySQL:
+  - Create a new database named 'artifaktdb' in mysql
+  - Use the following command: CREATE DATABASE artifaktdb CHARACTER SET utf8;
+SQLite:
+  - Replace sqlalchemy.url in development.ini with something like: sqlite:///%(here)s/artifakt.sqlite
+  - Can also comment out mysql in setup.py before running it
 
 - $VENV/bin/initialize_artifakt_db development.ini
 
