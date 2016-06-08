@@ -18,7 +18,7 @@
         <div class="panel panel-danger">
     {% endif %}
     <div class="panel-heading">
-        <h3 class="panel-title">{{ artifact.filename }}</h3>
+        <h3 id="filename" class="panel-title">{{ artifact.filename }}</h3>
     </div>
 
     <div class="panel-body">
@@ -79,7 +79,7 @@
                 <input type="submit" class="btn btn-sm btn-primary" value="View highlight">
             </form>
         {% endif %}
-        <form style="display: inline;" action="/artifact/{{ artifact.sha1 }}/delete">
+        <form style="display: inline;" id="delete" action="/artifact/{{ artifact.sha1 }}/delete">
             <input type="submit" class="btn btn-sm btn-danger" value="&#x1f5d1; Delete">
         </form>
     </div>

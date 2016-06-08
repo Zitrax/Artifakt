@@ -11,24 +11,22 @@
 <div class="container">
 <form action="/upload" id="upload_form" method="post" enctype="multipart/form-data">
 
-    <div class="form-group">
+    <fieldset>
         <label for="file">File:</label>
         <input class="form-control" id="file" type="file" name="file">
-    </div>
+    </fieldset>
 
     {% for key,vals in metadata.items()|sort %}
         <fieldset>
-            <div class="form-group">
-                <legend class="bg-info">{{ key|capitalize }}</legend>
-                {% for val in vals %}
-                    <label for="{{ key }}[{{ val }}]">{{ val|capitalize }}</label>
-                    <input class="form-control" type="text" id="{{ key }}[{{ val }}]" name="{{ key }}[{{ val }}]">
-                {% endfor %}
-            </div>
+            <legend>{{ key|capitalize }}</legend>
+            {% for val in vals %}
+                <label for="{{ key }}[{{ val }}]">{{ val|capitalize }}</label>
+                <input class="form-control" type="text" id="{{ key }}[{{ val }}]" name="{{ key }}[{{ val }}]">
+            {% endfor %}
         </fieldset>
     {% endfor %}
 
-    <button type="submit">Upload file</button>
+    <button type="submit" class="btn btn-default" style="margin: 1em;">Upload file</button>
 </form>
 </div>
 </body>
