@@ -36,6 +36,10 @@
                 <th>Created</th>
                 <td>{{ artifact.created }}</td>
             </tr>
+            <tr>
+                <th>Mime type</th>
+                <td>{{ artifact.mime or "Unknown" }}</td>
+            </tr>
             {% if artifact.comment %}
                 <tr>
                     <th>Comment</th>
@@ -72,15 +76,21 @@
             </form>
             {% if artifact.is_archive %}
                 <form style="display: inline;" action="/artifact/{{ artifact.sha1 }}/view_archive">
-                    <input type="submit" class="btn btn-sm btn-primary" value="&#x1f4c2; View archive">
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        <span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span>&nbsp;&nbsp;View archive
+                    </button>
                 </form>
             {% endif %}
-            <form style="display: inline;" class="view_content" action="/artifact/{{ artifact.sha1 }}/view">
-                <input type="submit" class="btn btn-sm btn-primary" value="View highlight">
-            </form>
+            {% if artifact.is_text %}
+                <form style="display: inline;" class="view_content" action="/artifact/{{ artifact.sha1 }}/view">
+                    <input type="submit" class="btn btn-sm btn-primary" value="View highlight">
+                </form>
+            {% endif %}
         {% endif %}
         <form style="display: inline;" id="delete" action="/artifact/{{ artifact.sha1 }}/delete">
-            <input type="submit" class="btn btn-sm btn-danger" value="&#x1f5d1; Delete">
+            <button type="submit" class="btn btn-sm btn-danger">
+                <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>&nbsp;Delete
+            </button>
         </form>
     </div>
     </div>

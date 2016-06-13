@@ -150,6 +150,10 @@ class Artifakt(Base):
         # FIXME: Do not duplicate this and in the view
         return self.mime in ['application/x-tar', 'application/zip', 'application/x-zip-compressed']
 
+    @property
+    def is_text(self):
+        return self.mime in ['text/plain']
+
     @staticmethod
     def metadata_keys():
         # TODO: Extract ths automatically along with types
