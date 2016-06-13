@@ -88,7 +88,7 @@ def artifact_inline_view(request):
 def artifact_archive_view(request):
     af = get_artifact(request)
     mime = af.mime
-    ret = defaultdict(list)
+    ret = {'title': 'Artifact archive: ' + af.filename}
     if mime == 'application/x-tar':
         with tarfile.open(af.file) as tar:
             ret['tarfiles'] = tar.getmembers()

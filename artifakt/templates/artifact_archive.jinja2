@@ -1,23 +1,34 @@
 <!DOCTYPE html>
-<html lang="{{request.locale_name}}">
+<html lang="{{ request.locale_name }}">
 <head>
     {% include 'head.jinja2' %}
-    <title>Artifact archive</title>
+    <title>{{ title }}</title>
 </head>
 <body>
 {% include 'navbar.jinja2' %}
-{% if error is defined %}
-    <p>{{ error }}</p>
-{% else %}
-    <table class="table table-striped table-hover table-condensed">
-        <tr><th>File</th><th>Size</th></tr>
-        {%  for file in tarfiles %}
-            <tr><td>{{ file.name }}</td><td>{{ file.size }}</td></tr>
-        {% endfor %}
-        {%  for file in zipfiles %}
-            <tr><td>{{ file.filename }}</td><td>{{ file.file_size }}</td></tr>
-        {% endfor %}
-    </table>
-{% endif %}
+<div class="container">
+    {% if error is defined %}
+        <p>{{ error }}</p>
+    {% else %}
+        <table class="table table-striped table-hover table-condensed">
+            <tr>
+                <th>File</th>
+                <th>Size</th>
+            </tr>
+            {% for file in tarfiles %}
+                <tr>
+                    <td>{{ file.name }}</td>
+                    <td>{{ file.size }}</td>
+                </tr>
+            {% endfor %}
+            {% for file in zipfiles %}
+                <tr>
+                    <td>{{ file.filename }}</td>
+                    <td>{{ file.file_size }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+</div>
 </body>
 </html>
