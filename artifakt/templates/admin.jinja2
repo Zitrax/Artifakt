@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="{{ request.locale_name }}">
+<head>
+    {% include 'head.jinja2' %}
+    <title>Artifakt Admin</title>
+    <script src="/js/artifact.js"></script>
+</head>
+<body>
+{% include 'navbar.jinja2' %}
+<div class="container">
+    <dl class="dl-horizontal">
+        {% for dt,dd in data.items() %}
+            <dt>{{ dt }}</dt>
+            <dd>{{ dd }}</dd>
+        {% endfor %}
+    </dl>
+</div>
+</body>

@@ -1,7 +1,6 @@
 import mimetypes
 import tarfile
 import zipfile
-from collections import defaultdict
 
 from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest, HTTPConflict
 from pyramid.response import Response, FileResponse

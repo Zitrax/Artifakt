@@ -20,12 +20,16 @@ def main(global_config, **settings):
     config.include('pyramid_jinja2')
     config.include('pyramid_chameleon')
 
+    models.storage = settings['artifakt.storage']
+    print(models.storage)
+
     config.add_static_view('js', 'static/js', cache_max_age=3600)
     config.add_static_view('css', 'static/css', cache_max_age=3600)
     config.add_static_view('img', 'static/img', cache_max_age=3600)
     config.add_static_view('bootstrap', 'static/bootstrap', cache_max_age=3600)
 
     config.add_route('home', '/')
+    config.add_route('admin', '/admin')
 
     config.add_route('artifact_json', '/artifact/{sha1}.json')
     config.add_route('artifact', '/artifact/{sha1}')
@@ -41,7 +45,5 @@ def main(global_config, **settings):
     config.add_route('upload', '/upload')
 
     config.scan()
-
-    models.storage = settings['artifakt.storage']
 
     return config.make_wsgi_app()

@@ -152,6 +152,7 @@ class TestArtifact(unittest.TestCase):
         eq_('1', af.vcs.revision)
         eq_('r-url', af.vcs.repository.url)
         eq_('r-name', af.vcs.repository.name)
+        assert_is_none(af.bundle_id)
 
     def test_upload_with_metadata_invalid(self):
         metadata = {'artifakt': {'comment': 'test'},

@@ -20,7 +20,7 @@ requires = [
     'pyramid_chameleon',
     'marshmallow-sqlalchemy',
     'nose',
-    'mysqlclient'  # Needs libpython3.5-dev
+    #'mysqlclient'  # Needs libpython3.5-dev
     ]
 
 setup(name='artifakt',

@@ -100,13 +100,32 @@ class VcsSchema(BaseSchema):
 schemas['vcs'] = VcsSchema()
 
 
+class Bundle(Base):
+    """Each artifact can be part of a bundle
+
+    A bundle is several grouped artifacts. For example part of a software release.
+    """
+    __tablename__ = 'bundle'
+    id = Column(Integer, nullable=False, autoincrement=True, primary_key=True)
+    name = Column(UnicodeText)
+
+
+class BundleSchema(BaseSchema):
+    class Meta:
+        model = Bundle
+
+
+schemas['bundle'] = BundleSchema()
+
+
 class Artifakt(Base):
     __tablename__ = 'artifakt'
     sha1 = Column(CHAR(length=40), nullable=False, primary_key=True)
     filename = Column(Unicode(length=255), nullable=False)
     comment = Column(UnicodeText)
     created = Column(DateTime, default=func.now())
-    vcs_id = Column(Integer, ForeignKey("vcs.id"))
+    vcs_id = Column(Integer, ForeignKey('vcs.id'))
+    bundle_id = Column(Integer, ForeignKey('bundle.id'))
 
     vcs = relationship("Vcs")
 
