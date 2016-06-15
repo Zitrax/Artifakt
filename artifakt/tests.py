@@ -101,18 +101,20 @@ class TestArtifact(unittest.TestCase):
         request.registry.settings['artifakt.storage'] = self.tmp_dir.name
         return request
 
-    def upload_request(self, content, name, metadata=None):
+    def upload_request(self, files: dict, metadata=None):
         if metadata is None:
             metadata = '{}'
-        fs = FieldStorage()
-        fs.file = BytesIO(content)
-        fs.filename = name
-        fields = MultiDict({'file': fs, 'metadata': metadata})
+        fields = MultiDict({'metadata': metadata})
+        for name, content in files.items():
+            fs = FieldStorage()
+            fs.file = BytesIO(content)
+            fs.filename = name
+            fields.add('file', fs)
         return self.generic_request(post=fields)
 
     def test_upload(self):
         # Upload a new file
-        request = self.upload_request(b'foo', 'file.foo')
+        request = self.upload_request({'file.foo': b'foo'})
         response = upload_post(request)
         assert_in('artifacts', response)
         eq_(1, len(response['artifacts']))
@@ -123,7 +125,7 @@ class TestArtifact(unittest.TestCase):
         assert_greater(os.path.getsize(target), 0)
 
         # Try the same again and we should get error
-        request = self.upload_request(b'foo', 'file.foo')
+        request = self.upload_request({'file.foo': b'foo'})
         response = upload_post(request)
         assert_in('error', response)
         eq_('Artifact with sha1 {} already exists'.format(sha1), response['error'])
@@ -133,7 +135,7 @@ class TestArtifact(unittest.TestCase):
         metadata = {'artifakt': {'comment': 'test'},
                     'repository': {'url': 'r-url', 'name': 'r-name', 'type': 'git'},
                     'vcs': {'revision': '1'}}
-        request = self.upload_request(b'foo', 'file.foo', metadata=json.dumps(metadata))
+        request = self.upload_request({'file.foo': b'foo'}, metadata=json.dumps(metadata))
         response = upload_post(request)
         assert_in('artifacts', response)
         eq_(1, len(response['artifacts']))
@@ -158,7 +160,7 @@ class TestArtifact(unittest.TestCase):
         metadata = {'artifakt': {'comment': 'test'},
                     'repository': {'url': 'r-url', 'name': 'r-name'},
                     'vcs': {'revision': '1'}}
-        request = self.upload_request(b'foo', 'file.foo', metadata=json.dumps(metadata))
+        request = self.upload_request({'file.foo': b'foo'}, metadata=json.dumps(metadata))
         assert_raises(IntegrityError, upload_post, request)
         DBSession.rollback()
 
@@ -167,10 +169,28 @@ class TestArtifact(unittest.TestCase):
         eq_(0, DBSession.query(Artifakt).count())
 
     def simple_upload(self):
-        request = self.upload_request(b'foo', 'file.foo')
+        request = self.upload_request({'file.foo': b'foo'})
         upload_post(request)
         eq_(200, request.response.status_code)
         return DBSession.query(Artifakt).one()
+
+    def test_upload_bundle(self):
+        request = self.upload_request({'file.foo': b'foo', 'file.bar': b'bar'})
+        upload_post(request)
+        eq_(200, request.response.status_code)
+        files = DBSession.query(Artifakt).all()
+        eq_(2, len(files))
+        for file in files:
+            eq_(1, file.bundle_id)
+        request = self.upload_request({'file.bin': b'bin', 'file.baz': b'baz'})
+        upload_post(request)
+        eq_(200, request.response.status_code)
+        files = DBSession.query(Artifakt).all()
+        eq_(4, len(files))
+        for file in files[0:2]:
+            eq_(1, file.bundle_id)
+        for file in files[2:4]:
+            eq_(2, file.bundle_id)
 
     def test_delete(self):
         # Upload an artifact, and check that file exists

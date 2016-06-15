@@ -128,6 +128,7 @@ class Artifakt(Base):
     bundle_id = Column(Integer, ForeignKey('bundle.id'))
 
     vcs = relationship("Vcs")
+    bundle = relationship("Bundle")
 
     @property
     def age(self):

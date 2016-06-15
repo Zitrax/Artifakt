@@ -5,7 +5,7 @@ import shutil
 
 from pyramid.view import view_config
 
-from artifakt.models.models import Artifakt, DBSession, schemas
+from artifakt.models.models import Artifakt, DBSession, schemas, Bundle
 
 
 def validate_metadata(data):
@@ -34,7 +34,9 @@ def upload_post(request):
             return {'error': 'Missing {} field in POST request'.format(field)}
 
     metadata = json.loads(request.POST.getone('metadata')) if 'metadata' in request.POST else None
-    for item in request.POST.getall('file'):
+    files = request.POST.getall('file')
+    bundle = Bundle() if len(files) > 1 else None
+    for item in files:
         blob = None
         try:
             sha1_hash = hashlib.sha1()
@@ -80,6 +82,8 @@ def upload_post(request):
                 vcs = objects['vcs']
                 vcs.repository = repo
                 af.vcs = vcs
+            if bundle:
+                af.bundle = bundle
 
             DBSession.add(af)
             artifacts.append(af)
