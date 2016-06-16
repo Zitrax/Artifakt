@@ -21,7 +21,6 @@ def main(global_config, **settings):
     config.include('pyramid_chameleon')
 
     models.storage = settings['artifakt.storage']
-    print(models.storage)
 
     config.add_static_view('js', 'static/js', cache_max_age=3600)
     config.add_static_view('css', 'static/css', cache_max_age=3600)
@@ -41,6 +40,8 @@ def main(global_config, **settings):
 
     config.add_route('artifacts', '/artifacts')
     config.add_route('artifacts_json', '/artifacts.json')
+
+    config.add_route('bundle', '/bundle/{id}')
 
     config.add_route('upload', '/upload')
 

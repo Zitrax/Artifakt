@@ -40,6 +40,13 @@
                 <th>Mime type</th>
                 <td>{{ artifact.mime or "Unknown" }}</td>
             </tr>
+            {% if artifact.bundle %}
+                <tr>
+                    <th>Bundle</th>
+                    <td><a href="/bundle/{{ artifact.bundle.id }}">{{ artifact.bundle.name or artifact.bundle.id }}</a>
+                    </td>
+                </tr>
+            {% endif %}
             {% if artifact.comment %}
                 <tr>
                     <th>Comment</th>

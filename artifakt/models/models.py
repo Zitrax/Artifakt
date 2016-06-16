@@ -111,6 +111,7 @@ class Bundle(Base):
 
 
 class BundleSchema(BaseSchema):
+
     class Meta:
         model = Bundle
 
@@ -128,7 +129,7 @@ class Artifakt(Base):
     bundle_id = Column(Integer, ForeignKey('bundle.id'))
 
     vcs = relationship("Vcs")
-    bundle = relationship("Bundle")
+    bundle = relationship("Bundle", backref='artifacts')
 
     @property
     def age(self):
