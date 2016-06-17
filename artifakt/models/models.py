@@ -133,7 +133,7 @@ class Artifakt(Base):
 
     @property
     def age(self):
-        return duration_string((datetime.now() - self.created).total_seconds())
+        return duration_string((datetime.utcnow() - self.created).total_seconds())
 
     @property
     def file(self):

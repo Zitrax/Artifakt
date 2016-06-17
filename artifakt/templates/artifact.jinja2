@@ -34,7 +34,12 @@
             </tr>
             <tr>
                 <th>Created</th>
-                <td>{{ artifact.created }}</td>
+                <td>
+                    <script>
+                        document.write(new Date('{{ artifact.created }} UTC').toLocaleString());
+                    </script>
+                    ( {{ artifact.age }} ago )
+                </td>
             </tr>
             <tr>
                 <th>Mime type</th>
