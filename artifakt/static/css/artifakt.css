@@ -17,6 +17,12 @@ legend {
   width: auto;
 }
 
+#file {
+  background-color: transparent;
+  box-shadow: none;
+  border: none;
+}
+
 label {
   display: block;
   font-weight: 100;

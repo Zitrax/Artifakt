@@ -10,6 +10,17 @@ $(function () {
         var metadata = $(this).serializeJSON();
         formData.set('metadata', metadata);
         $.ajax({
+            xhr: function() {
+                var xhr = new window.XMLHttpRequest();
+                xhr.upload.addEventListener("progress", function(evt) {
+                    if (evt.lengthComputable) {
+                        var pc = parseInt(evt.loaded / evt.total * 100);
+                        $('.progress').removeClass('hidden');
+                        $('.progress-bar').css('width', pc+'%').attr('aria-valuenow', pc).text(pc+'%');
+                    }
+                }, false);
+                return xhr;
+            },
             dataType: "json",
             type: $(this).attr('method'),
             url: $(this).attr('action'),
