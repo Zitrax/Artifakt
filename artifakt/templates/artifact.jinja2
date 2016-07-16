@@ -48,7 +48,7 @@
             {% if artifact.bundle %}
                 <tr>
                     <th>Bundle</th>
-                    <td><a href="/bundle/{{ artifact.bundle.id }}">{{ artifact.bundle.name or artifact.bundle.id }}</a>
+                    <td><code><a href="/bundle/{{ artifact.bundle.sha1 }}">{{ artifact.bundle.sha1 }}</a></code>
                     </td>
                 </tr>
             {% endif %}

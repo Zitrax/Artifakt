@@ -179,18 +179,21 @@ class TestArtifact(unittest.TestCase):
         upload_post(request)
         eq_(200, request.response.status_code)
         files = DBSession.query(Artifakt).all()
-        eq_(2, len(files))
-        for file in files:
-            eq_(1, file.bundle_id)
+        eq_(3, len(files))  # Two files + the bundle itself
+        eq_(None, files[0].bundle_id)
+        assert_is_not_none(files[1].bundle_id)
+        eq_(files[1].bundle_id, files[2].bundle_id)
         request = self.upload_request({'file.bin': b'bin', 'file.baz': b'baz'})
         upload_post(request)
         eq_(200, request.response.status_code)
         files = DBSession.query(Artifakt).all()
-        eq_(4, len(files))
-        for file in files[0:2]:
-            eq_(1, file.bundle_id)
-        for file in files[2:4]:
-            eq_(2, file.bundle_id)
+        eq_(6, len(files))  # 4 files + 2 bundles
+        eq_(None, files[0].bundle_id)
+        assert_is_not_none(files[1].bundle_id)
+        eq_(files[1].bundle_id, files[2].bundle_id)
+        eq_(None, files[3].bundle_id)
+        assert_is_not_none(files[4].bundle_id)
+        eq_(files[4].bundle_id, files[5].bundle_id)
 
     def test_delete(self):
         # Upload an artifact, and check that file exists

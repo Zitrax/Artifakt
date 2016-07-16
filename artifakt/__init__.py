@@ -44,7 +44,7 @@ def main(global_config, **settings):
     config.add_route('artifacts', '/artifacts')
     config.add_route('artifacts_json', '/artifacts.json')
 
-    config.add_route('bundle', '/bundle/{id}')
+    config.add_route('bundle', '/bundle/{sha1}')
 
     config.add_route('upload', '/upload')
 

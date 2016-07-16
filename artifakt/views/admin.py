@@ -2,6 +2,7 @@ import os
 from os.path import abspath
 
 from pyramid.view import view_config
+from sqlalchemy import not_
 
 from artifakt.models.models import storage, DBSession, Artifakt
 
@@ -17,14 +18,14 @@ def admin(_):
 def verify_fs(_):
     # First check for files in db that are not on disk
     af_not_on_disk = []
-    for af in DBSession.query(Artifakt).order_by(Artifakt.filename):
+    for af in DBSession.query(Artifakt).filter(not_(Artifakt.is_bundle)).order_by(Artifakt.filename):
         if not af.exists:
             af_not_on_disk.append(af)
     # Then check for files on disk that are not in the db
     af_not_in_db = []
     for root, directories, filenames in os.walk(storage):
         for fn in filenames:
-            af = DBSession.query(Artifakt).filter(Artifakt.filename == fn).one_or_none()
+            af = DBSession.query(Artifakt).filter(Artifakt.sha1 == root[-2:] + fn).one_or_none()
             if not af:
                 af_not_in_db.append(os.path.join(root, fn))
     return {'not_on_disk': af_not_on_disk,

@@ -5,7 +5,7 @@ import shutil
 
 from pyramid.view import view_config
 
-from artifakt.models.models import Artifakt, DBSession, schemas, Bundle
+from artifakt.models.models import Artifakt, DBSession, schemas
 
 
 def validate_metadata(data):
@@ -35,7 +35,8 @@ def upload_post(request):
 
     metadata = json.loads(request.POST.getone('metadata')) if 'metadata' in request.POST else None
     files = request.POST.getall('file')
-    bundle = Bundle() if len(files) > 1 else None
+    # Don't know the full sha1 until later - so start out with 0
+    bundle = Artifakt(sha1='0'*40, is_bundle=True) if len(files) > 1 else None
     for item in files:
         blob = None
         try:
@@ -92,6 +93,11 @@ def upload_post(request):
             if blob is not None and os.path.exists(blob):
                 os.remove(blob)
             raise
+
+    # Calculate bundle sha1
+    if bundle:
+        bundle.sha1 = format(sum(int(a.sha1, 16) for a in artifacts) % int('f'*40, 16), 'x')
+        DBSession.flush()
 
     return {"artifacts": [a.sha1 for a in artifacts]}
 

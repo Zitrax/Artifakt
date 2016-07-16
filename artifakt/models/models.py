@@ -7,6 +7,7 @@ from os.path import dirname
 from marshmallow import fields
 from marshmallow_sqlalchemy import ModelSchema, ModelSchemaOpts
 from sqlalchemy import (
+    Boolean,
     Column,
     CHAR,
     DateTime,
@@ -100,36 +101,23 @@ class VcsSchema(BaseSchema):
 schemas['vcs'] = VcsSchema()
 
 
-class Bundle(Base):
-    """Each artifact can be part of a bundle
-
-    A bundle is several grouped artifacts. For example part of a software release.
-    """
-    __tablename__ = 'bundle'
-    id = Column(Integer, nullable=False, autoincrement=True, primary_key=True)
-    name = Column(UnicodeText)
-
-
-class BundleSchema(BaseSchema):
-
-    class Meta:
-        model = Bundle
-
-
-schemas['bundle'] = BundleSchema()
-
-
 class Artifakt(Base):
+    """One artifact is one or several files.
+
+    Each artifact can be part of a bundle, a bundle is several grouped artifacts.
+    For example part of a software release.
+    """
     __tablename__ = 'artifakt'
     sha1 = Column(CHAR(length=40), nullable=False, primary_key=True)
-    filename = Column(Unicode(length=255), nullable=False)
+    filename = Column(Unicode(length=255), nullable=True)
     comment = Column(UnicodeText)
     created = Column(DateTime, default=func.now())
     vcs_id = Column(Integer, ForeignKey('vcs.id'))
-    bundle_id = Column(Integer, ForeignKey('bundle.id'))
+    bundle_id = Column(Integer, ForeignKey('artifakt.sha1'))
+    is_bundle = Column(Boolean, default=False)
 
     vcs = relationship("Vcs")
-    bundle = relationship("Bundle", backref='artifacts')
+    bundle = relationship("Artifakt", backref='artifacts', remote_side='Artifakt.sha1')
 
     @property
     def age(self):
