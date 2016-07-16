@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="{{ request.locale_name }}">
+<head>
+    {% include 'head.jinja2' %}
+    <title>Verify File System</title>
+    <script src="/js/artifact.js"></script>
+</head>
+<body>
+{% include 'navbar.jinja2' %}
+<div class="container">
+<h3>Files in db but not on disk: <span class="badge">{{ not_on_disk|length }}</span></h3>
+    <ul></ul>
+    {% for af in not_on_disk %}
+        <li><a style="font-family:monospace; color:darkred;" href="/artifact/{{ af.sha1 }}">{{ af.filename }}</a></li>
+    {% endfor %}
+    </ul>
+<h3>Files on disk but not in db: <span class="badge">{{ not_in_db|length }}</span></h3>
+    <ul></ul>
+    {% for fn in not_in_db %}
+        <li><span style="font-family:monospace; color:darkred;">{{ fn }}</span></li>
+    {% endfor %}
+    </ul>
+</div>
+</body>

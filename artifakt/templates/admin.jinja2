@@ -8,11 +8,15 @@
 <body>
 {% include 'navbar.jinja2' %}
 <div class="container">
+    <h4>System info:</h4>
     <dl class="dl-horizontal">
         {% for dt,dd in data.items() %}
             <dt>{{ dt }}</dt>
             <dd>{{ dd }}</dd>
         {% endfor %}
     </dl>
+
+    <h4>Actions:</h4>
+    <a href="admin/verify_fs"><button class="btn btn-default">Verify File System</button></a>
 </div>
 </body>

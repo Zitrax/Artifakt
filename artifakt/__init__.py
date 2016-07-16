@@ -28,7 +28,10 @@ def main(global_config, **settings):
     config.add_static_view('bootstrap', 'static/bootstrap', cache_max_age=3600)
 
     config.add_route('home', '/')
+
+    # Admin routes
     config.add_route('admin', '/admin')
+    config.add_route('verify_fs', '/admin/verify_fs')
 
     config.add_route('artifact_json', '/artifact/{sha1}.json')
     config.add_route('artifact', '/artifact/{sha1}')
