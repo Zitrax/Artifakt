@@ -10,13 +10,13 @@ $(function () {
         var metadata = $(this).serializeJSON();
         formData.set('metadata', metadata);
         $.ajax({
-            xhr: function() {
+            xhr: function () {
                 var xhr = new window.XMLHttpRequest();
-                xhr.upload.addEventListener("progress", function(evt) {
+                xhr.upload.addEventListener("progress", function (evt) {
                     if (evt.lengthComputable) {
                         var pc = parseInt(evt.loaded / evt.total * 100);
                         $('.progress').removeClass('hidden');
-                        $('.progress-bar').css('width', pc+'%').attr('aria-valuenow', pc).text(pc+'%');
+                        $('.progress-bar').css('width', pc + '%').attr('aria-valuenow', pc).text(pc + '%');
                     }
                 }, false);
                 return xhr;
@@ -37,7 +37,28 @@ $(function () {
             else
                 window.location.href = "/artifacts";
         }).fail(function (jqXHR, textStatus, errorThrown) {
-            alert("Error uploading file: " + jqXHR.responseJSON.error    );
+            alert("Error uploading file: " + jqXHR.responseJSON.error);
+        });
+    });
+
+    $(document).on('change', ':file', function () {
+        var input = $(this),
+            numFiles = input.get(0).files ? input.get(0).files.length : 1,
+            label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+        input.trigger('fileselect', [numFiles, label]);
+    });
+    $(document).ready(function () {
+        $(':file').on('fileselect', function (event, numFiles, label) {
+
+            var input = $(this).parents('.input-group').find(':text'),
+                log = numFiles > 1 ? numFiles + ' files selected' : label;
+
+            if (input.length) {
+                input.val(log);
+            } else {
+                if (log) alert(log);
+            }
+
         });
     });
 });
