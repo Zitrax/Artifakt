@@ -89,7 +89,7 @@ def upload_post(request):
             artifacts.append(af)
             DBSession.flush()
         except Exception:
-            if os.path.exists(blob):
+            if blob is not None and os.path.exists(blob):
                 os.remove(blob)
             raise
 
