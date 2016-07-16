@@ -36,7 +36,22 @@ def upload_post(request):
     metadata = json.loads(request.POST.getone('metadata')) if 'metadata' in request.POST else None
     files = request.POST.getall('file')
     # Don't know the full sha1 until later - so start out with 0
-    bundle = Artifakt(sha1='0'*40, is_bundle=True) if len(files) > 1 else None
+    if len(files) > 1:
+        try:
+            fn = metadata['artifakt']['comment']
+        except KeyError:
+            fn = None
+        bundle = Artifakt(sha1='0'*40,
+                          is_bundle=True,
+                          filename=fn)
+        # For bundles we are using the comment for the bundle name - so drop it on the files
+        try:
+            metadata['artifakt']['comment'] = None
+        except KeyError:
+            pass
+    else:
+        bundle = None
+
     for item in files:
         blob = None
         try:

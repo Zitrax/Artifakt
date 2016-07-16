@@ -26,7 +26,7 @@
                     <td><a href="/artifact/{{ artifact.sha1 }}">{{ artifact.filename }}</a></td>
                     <td><code>{{ artifact.sha1 }}</code></td>
                     <td>{{ artifact.created }}</td>
-                    <td>{{ artifact.comment }}</td>
+                    <td>{{ artifact.comment if artifact.comment else '' }}</td>
                 </tr>
             {% endfor %}
         </table>
