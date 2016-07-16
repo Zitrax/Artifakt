@@ -19,6 +19,9 @@ def main(global_config, **settings):
     config = Configurator(settings=settings)
     config.include('pyramid_jinja2')
     config.include('pyramid_chameleon')
+    # Next two lines for fullauth
+    config.include('pyramid_basemodel')
+    config.include('pyramid_fullauth')
 
     models.storage = settings['artifakt.storage']
 
