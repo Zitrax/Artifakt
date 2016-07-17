@@ -1,5 +1,4 @@
 from pyramid.config import Configurator
-from pyramid.events import subscriber, BeforeRender
 from pyramid.interfaces import IRootFactory
 from pyramid.security import Allow, Everyone, ALL_PERMISSIONS
 from pyramid_fullauth.auth import BaseACLRootFactoryMixin
@@ -11,11 +10,6 @@ from artifakt.models.models import (
     DBSession,
     Base,
 )
-
-
-@subscriber(BeforeRender)
-def add_global(event):
-    event['mykey'] = 'foo'
 
 
 def include_fullauth(config):
