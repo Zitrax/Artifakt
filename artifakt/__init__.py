@@ -8,6 +8,33 @@ from artifakt.models.models import (
     )
 
 
+def include_fullauth(config):
+    """Need some patching to use jinja2 templates with fullauth"""
+
+    config.include('pyramid_basemodel')
+
+    import pyramid_fullauth
+
+    def patched_includeme(orig_includeme):
+        def new_include(configurator):
+            # Need to force fullauth to treat mako templates as jinja
+            # or the asset override will still think we are using mako
+            configurator.add_jinja2_renderer('.mako')
+            orig_includeme(configurator)
+        return new_include
+
+    pyramid_fullauth.includeme = patched_includeme(pyramid_fullauth.includeme)
+    config.include('pyramid_fullauth')
+
+    config.override_asset(
+        to_override='pyramid_fullauth:resources/templates/login.mako',
+        override_with='artifakt:templates/login.jinja2')
+
+    config.override_asset(
+        to_override='pyramid_fullauth:resources/templates/',
+        override_with='artifakt:templates/')
+
+
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
@@ -19,9 +46,7 @@ def main(global_config, **settings):
     config = Configurator(settings=settings)
     config.include('pyramid_jinja2')
     config.include('pyramid_chameleon')
-    # Next two lines for fullauth
-    config.include('pyramid_basemodel')
-    config.include('pyramid_fullauth')
+    include_fullauth(config)
 
     models.storage = settings['artifakt.storage']
 

@@ -8,6 +8,10 @@ from pyramid.paster import (
 from pyramid.scripts.common import parse_vars
 from pyramid_basemodel import Base, Session, engine_from_config
 
+# noinspection PyUnresolvedReferences
+# This import is needed such that all fullauth models are created in the db
+import pyramid_fullauth
+
 
 def usage(argv):
     cmd = os.path.basename(argv[0])
