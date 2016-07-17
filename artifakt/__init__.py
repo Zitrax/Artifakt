@@ -26,9 +26,10 @@ def include_fullauth(config):
     pyramid_fullauth.includeme = patched_includeme(pyramid_fullauth.includeme)
     config.include('pyramid_fullauth')
 
-    config.override_asset(
-        to_override='pyramid_fullauth:resources/templates/login.mako',
-        override_with='artifakt:templates/login.jinja2')
+    for view in ['login', 'register']:
+        config.override_asset(
+            to_override='pyramid_fullauth:resources/templates/{}.mako'.format(view),
+            override_with='artifakt:templates/{}.jinja2'.format(view))
 
     config.override_asset(
         to_override='pyramid_fullauth:resources/templates/',

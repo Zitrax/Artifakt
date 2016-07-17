@@ -9,14 +9,18 @@
 <div class="container">
     <h2>Artifakt Login</h2>
 
-    <form id="login_form" name="login_form" method="POST" action="{{  request.route_path('login') }}">
+    {% if not status %}
+        <div class="alert alert-danger">Error! {{ msg }}</div>
+    {% endif %}
+
+    <form id="login_form" name="login_form" method="POST" action="{{ request.route_path('login') }}">
         <fieldset>
             <div class="control-group">
                 <label class="control-label">E-mail:</label>
                 <div class="controls">
                     <input type="email" placeholder="username@hostname.com" name="email" class="input-xlarge"/>
                     {% if after %}
-                    <input type="hidden" name="after" value="{{ after }}"/>
+                        <input type="hidden" name="after" value="{{ after }}"/>
                     {% endif %}
                     <input type="hidden" name="csrf_token" value="{{ csrf_token }}"/>
                 </div>
