@@ -1,4 +1,5 @@
 from pyramid.config import Configurator
+from pyramid.events import subscriber, BeforeRender
 from pyramid.interfaces import IRootFactory
 from pyramid.security import Allow, Everyone, ALL_PERMISSIONS
 from pyramid_fullauth.auth import BaseACLRootFactoryMixin
@@ -10,6 +11,11 @@ from artifakt.models.models import (
     DBSession,
     Base,
 )
+
+
+@subscriber(BeforeRender)
+def add_global(event):
+    event['mykey'] = 'foo'
 
 
 def include_fullauth(config):
@@ -52,7 +58,8 @@ class ArtifaktRootFactory(BaseACLRootFactoryMixin):
 
     __acl__ = [(Allow, Everyone, 'view'),
                (Allow, 's:superadmin', ALL_PERMISSIONS),
-               (Allow, 's:user', 'user')
+               (Allow, 's:user', 'user'),
+               (Allow, 's:inactive', 'user')  # For now - do not care about activation
                ]
 
 
