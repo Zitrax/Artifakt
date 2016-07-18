@@ -7,14 +7,14 @@ from sqlalchemy import not_
 from artifakt.models.models import storage, DBSession, Artifakt
 
 
-@view_config(route_name='admin', renderer='artifakt:templates/admin.jinja2')
+@view_config(route_name='admin', renderer='artifakt:templates/admin.jinja2', permission='admin')
 def admin(_):
     return {'data': {
         'Data storage': abspath(storage)}
     }
 
 
-@view_config(route_name='verify_fs', renderer='artifakt:templates/verify_fs.jinja2')
+@view_config(route_name='verify_fs', renderer='artifakt:templates/verify_fs.jinja2', permission='admin')
 def verify_fs(_):
     # First check for files in db that are not on disk
     af_not_on_disk = []
