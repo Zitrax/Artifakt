@@ -13,39 +13,41 @@
         <div class="alert alert-danger">Error! {{ msg }}</div>
     {% endif %}
 
-    <form id="login_form" name="login_form" method="POST" action="{{ request.route_path('login') }}">
-        <fieldset>
-            <div class="control-group">
-                <label class="control-label">E-mail:</label>
-                <div class="controls">
-                    <input type="email" placeholder="username@hostname.com" name="email" class="input-xlarge"/>
+    <form class="form-horizontal" id="login_form" name="login_form" method="POST"
+          action="{{ request.route_path('login') }}">
+        <fieldset class="form-group">
+            <div class="form-group">
+                <label for="email" class="control-label col-sm-2">E-mail:</label>
+                <div class="col-sm-10">
+                    <input class="form-control" type="email" placeholder="username@hostname.com" name="email"/>
                     {% if after %}
                         <input type="hidden" name="after" value="{{ after }}"/>
                     {% endif %}
                     <input type="hidden" name="csrf_token" value="{{ csrf_token }}"/>
                 </div>
             </div>
-            <div class="control-group">
-                <label class="control-label">Password:</label>
-                <div class="controls">
-                    <input type="password" name="password" class="input-xlarge"/>
+            <div class="form-group">
+                <label for="password" class="control-label col-sm-2">Password:</label>
+                <div class="col-sm-10">
+                    <input class="form-control" type="password" id="password" name="password"/>
                 </div>
             </div>
-            <div class="control-group">
-                <label class="control-label">Remember me:</label>
-                <div class="controls">
-                    <input type="checkbox" name="remember" value="1"/>
+            <div class="form-group">
+                <label for="remember" class="control-label col-sm-2">Remember me:</label>
+                <div class="col-sm-10">
+                    <input class="checkbox" id="remember" type="checkbox" name="remember" value="1"/>
                 </div>
             </div>
-            <div class="control-group">
-                <div class="controls options">
-                    <a href="{{ request.route_path('password:reset') }}">Forgot your password?</a><br/>
-                    <a id="sign_up_login" href="{{ request.route_path('register') }}">Want to join? Sign Up!</a><br/>
-                </div>
+            <div>
+                <ul>
+                    <li><a href="{{ request.route_path('password:reset') }}">Forgot your password ?</a><br/>
+                    <li><a id="sign_up_login" href="{{ request.route_path('register') }}">Want to join? Sign
+                        Up!</a><br/>
+                </ul>
             </div>
-            <div class="modal-footer center">
+            <div class="modal-footer">
                 <div>
-                    <button type="submit" class="btn btn-primary btn-large f18 w180"><strong>Log in</strong></button>
+                    <button type="submit" class="btn btn-primary btn-lg"><strong>Log in</strong></button>
                 </div>
             </div>
         </fieldset>
