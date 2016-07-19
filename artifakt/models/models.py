@@ -107,12 +107,14 @@ class Artifakt(Base):
     filename = Column(Unicode(length=255), nullable=True)
     comment = Column(UnicodeText)
     created = Column(DateTime, default=func.now())
+    uploaded_by = Column(Integer, ForeignKey('users.id'))
     vcs_id = Column(Integer, ForeignKey('vcs.id'))
     bundle_id = Column(Integer, ForeignKey('artifakt.sha1'))
     is_bundle = Column(Boolean, default=False)
 
     vcs = relationship("Vcs")
     bundle = relationship("Artifakt", backref='artifacts', remote_side='Artifakt.sha1')
+    uploader = relationship("User")
 
     @property
     def age(self):

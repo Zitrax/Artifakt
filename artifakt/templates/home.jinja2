@@ -26,6 +26,7 @@
         <tr>
             <th>Filename</th>
             <th>Age</th>
+            <th>Uploader</th>
             <th>Comment</th>
         </tr>
         {% for artifact in artifacts %}
@@ -38,6 +39,7 @@
                 <td><a href="/artifact/{{ artifact.sha1 }}">{{ artifact.filename }}</a></td>
             {% endif %}
                 <td>{{ artifact.age }}</td>
+                <td>{{ artifact.uploader }}</td>
                 <td>{{ artifact.comment if artifact.comment else '' }}</td>
             </tr>
         {% endfor %}

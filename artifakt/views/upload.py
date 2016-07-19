@@ -85,6 +85,7 @@ def upload_post(request):
                 metadata['artifakt'] = {}
             metadata['artifakt']['filename'] = item.filename
             metadata['artifakt']['sha1'] = sha1
+            metadata['artifakt']['uploader'] = request.user
 
             # Will validate and create objects
             objects = validate_metadata(metadata)
