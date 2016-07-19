@@ -6,6 +6,7 @@ from os.path import dirname
 
 from marshmallow import fields
 from marshmallow_sqlalchemy import ModelSchema, ModelSchemaOpts
+from pyramid_basemodel import Base, Session as DBSession
 from sqlalchemy import (
     Boolean,
     Column,
@@ -19,20 +20,14 @@ from sqlalchemy import (
     UnicodeText,
     Enum
     )
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import (
-    scoped_session,
-    sessionmaker,
     relationship)
-from sqlalchemy.orm.session import object_session, Session
+from sqlalchemy.orm.session import object_session
 from sqlalchemy.sql import func
-from zope.sqlalchemy import ZopeTransactionExtension
 
 from artifakt.utils.file import count_files
 from artifakt.utils.time import duration_string
 
-DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
-Base = declarative_base()
 logger = logging.getLogger(__name__)
 
 # Set by main
@@ -112,12 +107,14 @@ class Artifakt(Base):
     filename = Column(Unicode(length=255), nullable=True)
     comment = Column(UnicodeText)
     created = Column(DateTime, default=func.now())
+    uploaded_by = Column(Integer, ForeignKey('users.id'))
     vcs_id = Column(Integer, ForeignKey('vcs.id'))
     bundle_id = Column(Integer, ForeignKey('artifakt.sha1'))
     is_bundle = Column(Boolean, default=False)
 
     vcs = relationship("Vcs")
     bundle = relationship("Artifakt", backref='artifacts', remote_side='Artifakt.sha1')
+    uploader = relationship("User")
 
     @property
     def age(self):
@@ -208,14 +205,14 @@ def artifakt_after_delete(mapper, connection, target):
         getattr(session, 'deletes').append(target)
 
 
-@event.listens_for(Session, 'after_rollback')
+@event.listens_for(DBSession, 'after_rollback')
 def artifakt_after_rollback(session):
     """Clear list of targets to delete"""
     if hasattr(session, 'deletes'):
         getattr(session, 'deletes').clear()
 
 
-@event.listens_for(Session, 'after_commit')
+@event.listens_for(DBSession, 'after_commit')
 def artifakt_after_commit(session):
     """Call delete to actually delete the associated files"""
     deletes = getattr(session, 'deletes', None)

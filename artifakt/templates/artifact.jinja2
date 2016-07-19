@@ -42,6 +42,11 @@
                 </td>
             </tr>
             <tr>
+                <th>Uploader</th>
+                <td>{{ artifact.uploader.username if not artifact.uploader.firstname else
+                 "{} {}".format(artifact.uploader.firstname, artifact.uploader.lastname) }}</td>
+            </tr>
+            <tr>
                 <th>Mime type</th>
                 <td>{{ artifact.mime or "Unknown" }}</td>
             </tr>

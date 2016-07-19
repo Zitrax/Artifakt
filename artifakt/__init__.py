@@ -1,11 +1,60 @@
 from pyramid.config import Configurator
+from pyramid.interfaces import IRootFactory
+from pyramid.security import Allow, Everyone, ALL_PERMISSIONS
+from pyramid_fullauth.auth import BaseACLRootFactoryMixin
 from sqlalchemy import engine_from_config
+from zope.interface import implementer
 
 from artifakt.models import models
 from artifakt.models.models import (
     DBSession,
     Base,
-    )
+)
+
+
+def include_fullauth(config):
+    """Need some patching to use jinja2 templates with fullauth"""
+
+    config.include('pyramid_basemodel')
+
+    def patched_includeme(orig_includeme):
+        def new_include(configurator):
+            # Need to force fullauth to treat mako templates as jinja
+            # or the asset override will still think we are using mako
+            configurator.add_jinja2_renderer('.mako')
+            # Important - since fullauth uses a registered factory if set.
+            #  set_root_factory(...) can not be used.
+            configurator.registry.registerUtility(ArtifaktRootFactory, IRootFactory)
+            orig_includeme(configurator)
+        return new_include
+
+    import pyramid_fullauth
+    pyramid_fullauth.includeme = patched_includeme(pyramid_fullauth.includeme)
+    config.include('pyramid_fullauth')
+
+    for view in ['login', 'register', '403']:
+        config.override_asset(
+            to_override='pyramid_fullauth:resources/templates/{}.mako'.format(view),
+            override_with='artifakt:templates/{}.jinja2'.format(view))
+
+    config.override_asset(
+        to_override='pyramid_fullauth:resources/templates/',
+        override_with='artifakt:templates/')
+
+
+@implementer(IRootFactory)
+class ArtifaktRootFactory(BaseACLRootFactoryMixin):
+    """Custom factory with acl changes
+
+    The default fullauth mixin hardcodes the user permissions. Instead change that
+    to a generic 'user' permission that can be used all over.
+    """
+
+    __acl__ = [(Allow, Everyone, 'view'),
+               (Allow, 's:superadmin', ALL_PERMISSIONS),
+               (Allow, 's:user', 'user'),
+               (Allow, 's:inactive', 'user')  # For now - do not care about activation
+               ]
 
 
 def main(global_config, **settings):
@@ -17,8 +66,10 @@ def main(global_config, **settings):
     # FIXME: This is a default unsecure factory
     # my_session_factory = SignedCookieSessionFactory('itsaseekreet')
     config = Configurator(settings=settings)
+    config.set_default_permission('user')
     config.include('pyramid_jinja2')
     config.include('pyramid_chameleon')
+    include_fullauth(config)
 
     models.storage = settings['artifakt.storage']
 

@@ -17,8 +17,16 @@
             <ul class="nav navbar-nav">
                 <li><a href="/artifacts">List</a></li>
                 <li><a href="/upload">Upload</a></li>
-                <li><a href="/admin">Admin</a></li>
+                {% if request.user.is_admin %}
+                    <li><a href="/admin">Admin</a></li>
+                {% endif %}
             </ul>
+            {% if request.user %}
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="/logout">Log out {{ request.user.username or request.user.email }}</a></li>
+                </ul>
+            {% endif %}
+
         </div><!-- /.navbar-collapse -->
 
     </div><!-- /.container-fluid -->

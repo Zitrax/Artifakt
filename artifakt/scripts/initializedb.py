@@ -6,12 +6,11 @@ from pyramid.paster import (
     setup_logging,
     )
 from pyramid.scripts.common import parse_vars
-from sqlalchemy import engine_from_config
+from pyramid_basemodel import Base, Session, engine_from_config
 
-from artifakt.models.models import (
-    DBSession,
-    Base,
-    )
+# noinspection PyUnresolvedReferences
+# This import is needed such that all fullauth models are created in the db
+import pyramid_fullauth
 
 
 def usage(argv):
@@ -29,5 +28,5 @@ def main(argv=sys.argv):
     setup_logging(config_uri)
     settings = get_appsettings(config_uri, options=options)
     engine = engine_from_config(settings, 'sqlalchemy.')
-    DBSession.configure(bind=engine)
+    Session.configure(bind=engine)
     Base.metadata.create_all(engine)
