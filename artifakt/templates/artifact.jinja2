@@ -23,6 +23,8 @@
 
     <div class="panel-body">
 
+        <img src="{{ request.route_url('thumbs', size='thumb', path=artifact.file) }}"/>
+
         <table class="table table-striped table-hover">
             <tr>
                 <th>File size</th>
@@ -53,7 +55,8 @@
             {% if artifact.bundle %}
                 <tr>
                     <th>Bundle</th>
-                    <td><code><a href="/bundle/{{ artifact.bundle.sha1 }}">{{ artifact.bundle.sha1 }}</a></code>
+                    <td>
+                        <a href="/bundle/{{ artifact.bundle.sha1 }}">{{ artifact.bundle.filename or artifact.bundle.sha1 }}</a>
                     </td>
                 </tr>
             {% endif %}

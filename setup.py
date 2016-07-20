@@ -19,6 +19,7 @@ requires = [
     'pyramid_jinja2',
     'pyramid_chameleon',
     'marshmallow-sqlalchemy',
+    'wsgithumb',
     'nose',
     'pyramid_fullauth',
     'pyramid_basemodel'
