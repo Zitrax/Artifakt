@@ -25,6 +25,7 @@ def include_fullauth(config):
             #  set_root_factory(...) can not be used.
             configurator.registry.registerUtility(ArtifaktRootFactory, IRootFactory)
             orig_includeme(configurator)
+
         return new_include
 
     import pyramid_fullauth
@@ -105,6 +106,15 @@ def main(global_config, **settings):
     config.add_route('customers_json', '/customers.json')
 
     config.add_route('upload', '/upload')
+
+    sizes = {
+        'thumb': (100, 100),
+        'large': (500, 500),
+        'original': None,
+    }
+    import wsgithumb
+    config.include('wsgithumb')
+    config.add_thumb_view('thumbs', sizes=sizes)
 
     config.scan()
 
