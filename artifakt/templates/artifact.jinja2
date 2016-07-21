@@ -26,7 +26,14 @@
 
     <div class="panel-body">
 
-        <img src="{{ request.route_url('thumbs', size='thumb', path=artifact.file) }}"/>
+        {% if artifact.is_image %}
+            <div>
+                <a href="/artifact/{{ artifact.sha1 }}/view_raw">
+                    <img class="imgborder"
+                         src="{{ request.route_url('thumbs', size='thumb', path=artifact.file) }}"/></a>
+            </div>
+            <p></p>
+        {% endif %}
 
         <table class="table table-striped table-hover">
             <tr>

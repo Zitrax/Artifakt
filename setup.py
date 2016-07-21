@@ -20,6 +20,7 @@ requires = [
     'pyramid_chameleon',
     'marshmallow-sqlalchemy',
     'wsgithumb',
+    'pystacia',
     'nose',
     'pyramid_fullauth',
     'pyramid_basemodel'

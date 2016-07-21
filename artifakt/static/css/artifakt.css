@@ -140,3 +140,9 @@ span.comment_by, span.comment_age {
 span.comment_reply a {
     font-size: small;
 }
+
+img.imgborder {
+    border: 3px solid black;
+    border-radius: 4px;
+    margin: 4px;
+}
