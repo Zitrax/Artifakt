@@ -157,6 +157,10 @@ class Artifakt(Base):
         return self.mime in ['application/x-tar', 'application/zip', 'application/x-zip-compressed']
 
     @property
+    def is_image(self):
+        return self.mime.startswith('image/')
+
+    @property
     def is_text(self):
         return self.mime in ['text/plain']
 
