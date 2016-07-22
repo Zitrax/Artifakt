@@ -111,6 +111,33 @@
         </form>
     </div>
     </div>
+
+
+    {% if artifact.comments|length %}
+        <div class="panel panel-success">
+            <div class="panel-heading">
+                <h3 class="panel-title">Comments</h3>
+            </div>
+
+            <div class="panel-body">
+                <table class="table table-striped table-hover">
+                    <tr>
+                        <th>Comment</th>
+                        <th>By</th>
+                        <th>When</th>
+                    </tr>
+                    {% for comment in artifact.comments %}
+                        <tr>
+                            <td style="width: 70%;">{{ comment.comment }}</td>
+                            <td style="width: 15%;">{{ comment.user }}</td>
+                            <td style="width: 15%;">{{ comment.time }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    {% endif %}
     </div>
+
 </body>
 </html>

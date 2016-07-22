@@ -185,13 +185,30 @@ class ArtifaktSchema(BaseSchema):
 
     class Meta:
         model = Artifakt
-
 schemas['artifakt'] = ArtifaktSchema()
+
+
+class Comment(Base):
+    __tablename__ = 'comment'
+    artifakt_sha1 = Column(CHAR(length=40), ForeignKey('artifakt.sha1'), nullable=False, primary_key=True)
+    comment = Column(UnicodeText, nullable=False, primary_key=True)
+    time = Column(DateTime, default=func.now())
+    user_id = Column(Integer, ForeignKey('users.id'))
+
+    artifakt = relationship('Artifakt', backref='comments')
+    user = relationship('User')
+
+
+class CommentSchema(BaseSchema):
+
+    class Meta:
+        model = Comment
+schemas['comment'] = CommentSchema()
+
 
 
 # Would be nice if these could be inside the object instead ...
 
-# noinspection PyUnusedLocal
 @event.listens_for(Artifakt, 'after_delete')
 def artifakt_after_delete(mapper, connection, target):
     """Register a delete on the target
@@ -203,6 +220,7 @@ def artifakt_after_delete(mapper, connection, target):
         setattr(session, 'deletes', [target])
     else:
         getattr(session, 'deletes').append(target)
+# noinspection PyUnusedLocal
 
 
 @event.listens_for(DBSession, 'after_rollback')
