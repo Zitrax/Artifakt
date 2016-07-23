@@ -113,27 +113,29 @@
     </div>
 
 
-    {% if artifact.comments|length %}
+    {% if 1 or artifact.comments|length %}
         <div class="panel panel-success">
             <div class="panel-heading">
                 <h3 class="panel-title">Comments</h3>
             </div>
 
             <div class="panel-body">
-                <table class="table table-striped table-hover">
-                    <tr>
-                        <th>Comment</th>
-                        <th>By</th>
-                        <th>When</th>
-                    </tr>
-                    {% for comment in artifact.comments %}
-                        <tr>
-                            <td style="width: 70%;">{{ comment.comment }}</td>
-                            <td style="width: 15%;">{{ comment.user }}</td>
-                            <td style="width: 15%;">{{ comment.time }}</td>
-                        </tr>
+                <input id="new_comment" class="input-sm" type="text" placeholder="New comment">
+                <hr>
+                <ul>
+                    {% for comment in artifact.root_comments recursive %}
+                        <li>
+                            <span class="comment">{{ comment.comment }}</span>&nbsp;&mdash;&nbsp;
+                            <span class="comment_by">{{ comment.user }}</span>
+                            <span class="comment_age" title="{{ comment.time }}">{{ comment.age }} ago</span>&nbsp;
+                            <span class="comment_reply"><a data-comment-id="{{ comment.id }}">Reply</a></span>
+                            {% if comment.replies %}
+                                <ul>{{ loop(comment.replies) }}</ul>
+                            {% endif %}
+                        </li>
                     {% endfor %}
-                </table>
+
+                </ul>
             </div>
         </div>
     {% endif %}

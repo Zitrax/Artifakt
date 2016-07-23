@@ -1,3 +1,4 @@
+import json
 import mimetypes
 import tarfile
 import zipfile
@@ -97,3 +98,12 @@ def artifact_archive_view(request):
             ret['zipfiles'] = _zip.infolist()
             return ret
     return {"error": "Mimetype {} is not a known/supported archive".format(mime)}
+
+
+@view_config(route_name='artifact_comment_add', request_method="POST")
+def artifact_comment_add(request):
+    data = request.json_body
+    data['user_id'] = request.user.id
+    comment = schemas['comment'].make_instance(data)
+    DBSession.add(comment)
+    return Response(status=200)

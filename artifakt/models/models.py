@@ -117,6 +117,10 @@ class Artifakt(Base):
     uploader = relationship("User")
 
     @property
+    def root_comments(self):
+        return [c for c in self.comments if c.parent_id is None]
+
+    @property
     def age(self):
         return duration_string((datetime.utcnow() - self.created).total_seconds())
 
@@ -190,13 +194,20 @@ schemas['artifakt'] = ArtifaktSchema()
 
 class Comment(Base):
     __tablename__ = 'comment'
-    artifakt_sha1 = Column(CHAR(length=40), ForeignKey('artifakt.sha1'), nullable=False, primary_key=True)
-    comment = Column(UnicodeText, nullable=False, primary_key=True)
+    id = Column(Integer, nullable=False, primary_key=True)
+    artifakt_sha1 = Column(CHAR(length=40), ForeignKey('artifakt.sha1'), nullable=False)
+    comment = Column(UnicodeText, nullable=False)
     time = Column(DateTime, default=func.now())
     user_id = Column(Integer, ForeignKey('users.id'))
+    parent_id = Column(Integer, ForeignKey('comment.id'), nullable=True)
 
     artifakt = relationship('Artifakt', backref='comments')
     user = relationship('User')
+    parent = relationship('Comment', backref='replies', remote_side='Comment.id')
+
+    @property
+    def age(self):
+        return duration_string((datetime.utcnow() - self.time).total_seconds())
 
 
 class CommentSchema(BaseSchema):

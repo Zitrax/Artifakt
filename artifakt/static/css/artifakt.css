@@ -131,3 +131,12 @@ that screen readers should still see.
     position: absolute;
     left: -9999em;
 }
+
+span.comment_by, span.comment_age {
+    color: #a5a5a5;
+    font-style: italic;
+}
+
+span.comment_reply a {
+    font-size: small;
+}
