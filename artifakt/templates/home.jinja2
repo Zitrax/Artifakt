@@ -12,11 +12,15 @@
     <ul class="btn-group-vertical">
         <a type="button" class="btn btn-primary btn-block" href="artifacts">
             <h4 class="list-group-item-heading text-left"><span class="glyphicon glyphicon-list"></span>List</h4>
-            <p class="list-group-item-text text-left opacity"><small>List all artifacts in the database</small></p>
+            <p class="list-group-item-text text-left opacity">
+                <small>List all artifacts in the database</small>
+            </p>
         </a>
         <a type="button" class="btn btn-primary btn-block" href="upload">
             <h4 class="list-group-item-heading text-left"><span class="glyphicon glyphicon-upload"></span>Upload</h4>
-            <p class="list-group-item-text text-left opacity"><small>Upload form for adding new artifacts</small></p>
+            <p class="list-group-item-text text-left opacity">
+                <small>Upload form for adding new artifacts</small>
+            </p>
         </a>
     </ul>
 
@@ -31,16 +35,33 @@
         </tr>
         {% for artifact in artifacts %}
             <tr>
-            {% if artifact.is_bundle %}
-                <td><a href="/bundle/{{ artifact.sha1 }}">
-                    <span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span>
-                    {{ artifact.filename if artifact.filename else '' }}</a></td>
-            {% else %}
-                <td><a href="/artifact/{{ artifact.sha1 }}">{{ artifact.filename }}</a></td>
-            {% endif %}
+                {% if artifact.is_bundle %}
+                    <td><a href="/bundle/{{ artifact.sha1 }}">
+                        <span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span>
+                        {{ artifact.filename if artifact.filename else '' }}</a></td>
+                {% else %}
+                    <td><a href="/artifact/{{ artifact.sha1 }}">{{ artifact.filename }}</a></td>
+                {% endif %}
                 <td>{{ artifact.age }}</td>
                 <td>{{ artifact.uploader }}</td>
                 <td>{{ artifact.comment if artifact.comment else '' }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Latest comments</h2>
+    <table class="table table-striped table-hover table-condensed">
+        <tr>
+        </tr>
+        {% for comment in comments %}
+            <tr>
+                <td>
+                <td><span class="comment">{{ comment.comment }}</span>&nbsp;&mdash;&nbsp;
+                    <span class="comment_by">{{ comment.user }}</span>
+                    <span class="comment_age" title="{{ comment.time }}"><a
+                            href="/artifact/{{ comment.artifakt_sha1 }}">{{ comment.age }} ago</a></span>&nbsp;
+                </td>
+                </td>
             </tr>
         {% endfor %}
     </table>
