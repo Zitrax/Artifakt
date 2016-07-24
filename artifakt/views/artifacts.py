@@ -1,15 +1,13 @@
-import json
 import mimetypes
 import tarfile
 import zipfile
 
+from artifakt import DBSession
+from artifakt.models.models import Artifakt, schemas
 from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest, HTTPConflict
 from pyramid.response import Response, FileResponse
 from pyramid.view import view_config
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
-
-from artifakt import DBSession
-from artifakt.models.models import Artifakt, schemas
 
 
 @view_config(route_name='artifacts', renderer='artifakt:templates/artifacts.jinja2')
@@ -100,10 +98,11 @@ def artifact_archive_view(request):
     return {"error": "Mimetype {} is not a known/supported archive".format(mime)}
 
 
-@view_config(route_name='artifact_comment_add', request_method="POST")
+@view_config(route_name='artifact_comment_add', request_method="POST", renderer="json")
 def artifact_comment_add(request):
     data = request.json_body
     data['user_id'] = request.user.id
     comment = schemas['comment'].make_instance(data)
     DBSession.add(comment)
-    return Response(status=200)
+    DBSession.flush()
+    return schemas['comment'].dump(comment).data

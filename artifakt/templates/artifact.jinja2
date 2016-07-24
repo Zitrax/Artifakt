@@ -122,7 +122,7 @@
             <div class="panel-body">
                 <input id="new_comment" class="input-sm" type="text" placeholder="New comment">
                 <hr>
-                <ul>
+                <ul id="comments">
                     {% for comment in artifact.root_comments recursive %}
                         <li>
                             <span class="comment">{{ comment.comment }}</span>&nbsp;&mdash;&nbsp;

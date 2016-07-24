@@ -6,6 +6,7 @@ from io import BytesIO
 from tempfile import TemporaryDirectory
 
 import transaction
+from artifakt.utils.time import duration_string
 from nose.tools import assert_in, assert_true, assert_raises, assert_is_not_none,\
     assert_false, assert_is_none, assert_greater
 from pyramid import testing
@@ -220,3 +221,8 @@ class TestArtifact(unittest.TestCase):
         response = artifact_download(request, inline=True)
         eq_(200, response.status_code)
         # TODO: Verify downloaded file
+
+
+class TestTime(unittest.TestCase):
+    def test_zero(self):
+        eq_(duration_string(0), '0 seconds')

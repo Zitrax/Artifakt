@@ -3,6 +3,11 @@ def duration_string(amount: int, units='seconds', res=2) -> str:
     Based on: http://stackoverflow.com/a/26781642/11722
     """
 
+    print("hhh" + str(amount))
+
+    if amount < 1 and units == 'seconds':
+        return '0 ' + units
+
     def process_time(_amount: int, _units: str) -> str:
 
         intervals = [1, 60,

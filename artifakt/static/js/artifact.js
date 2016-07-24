@@ -19,7 +19,7 @@ $(function () {
         }
     });
 
-    function add_comment(comment, parent_id) {
+    function add_comment(comment, parent_id, target, input) {
         var sha1 = window.location.pathname.split('/').pop();
         $.ajax({
             url: window.location.pathname + '/comment',
@@ -32,13 +32,31 @@ $(function () {
             contentType: "application/json; charset=utf-8",
             dataType: "json"
         }).done(function (data) {
-            alert('ok');
+            var $new_comment = $('<li>' +
+                '<span class="comment">' + data.comment + '</span>&nbsp;&mdash;&nbsp;' +
+                '<span class="comment_by">' + data.user.username + '</span>&nbsp;' +
+                '<span class="comment_age" title="">' + data.age + ' ago</span>&nbsp;' +
+                '</li>');
+            if (target.prop("tagName") == "UL") {
+                $new_comment.appendTo(target);
+                input.val('');
+            } else {
+                var ul = target.find('ul');
+                if (!ul) {
+                    ul = $('<ul>');
+                    ul.appendTo(target);
+                }
+                $new_comment.appendTo(ul);
+                input.parent().remove();
+            }
+        }).fail(function () {
+            alert('fail');
         });
     }
 
     $('#new_comment').keypress(function (e) {
         if (e.which == 13) {
-            add_comment($(this).val());
+            add_comment($(this).val(), null, $('#comments'), $(this));
         }
     });
 
@@ -49,11 +67,13 @@ $(function () {
         var $reply = $('<ul class="reply_list"><li>' +
             '<input data-reply-id="' + $(this).data("comment-id") + '" class="input-sm" type="text" placeholder="Reply">' +
             '</li></ul>');
-        $reply.appendTo($(this).parent().parent());
+        var $target = $(this).parent().parent();
+        $reply.appendTo($target);
         $reply.find('input').focus().keypress(function (e) {
             if (e.which == 13) {
-                add_comment($(this).val(), $(this).data("reply-id"));
+                add_comment($(this).val(), $(this).data("reply-id"), $target, $(this));
             }
         });
     });
 });
+

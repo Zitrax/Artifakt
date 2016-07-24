@@ -4,9 +4,12 @@ import os
 from datetime import datetime
 from os.path import dirname
 
+from artifakt.utils.file import count_files
+from artifakt.utils.time import duration_string
 from marshmallow import fields
 from marshmallow_sqlalchemy import ModelSchema, ModelSchemaOpts
 from pyramid_basemodel import Base, Session as DBSession
+from pyramid_fullauth.models import User
 from sqlalchemy import (
     Boolean,
     Column,
@@ -19,14 +22,11 @@ from sqlalchemy import (
     Unicode,
     UnicodeText,
     Enum
-    )
+)
 from sqlalchemy.orm import (
     relationship)
 from sqlalchemy.orm.session import object_session
 from sqlalchemy.sql import func
-
-from artifakt.utils.file import count_files
-from artifakt.utils.time import duration_string
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +55,17 @@ class BaseSchema(ModelSchema):
 
 
 schemas = {}
+
+
+class UserSchema(BaseSchema):
+    class Meta:
+        model = User
+        exclude = ['password']
+        # TODO: Exclude more
+
+
+schemas['user'] = UserSchema
+
 
 # FIXME: Add cascading deletes
 
@@ -189,6 +200,8 @@ class ArtifaktSchema(BaseSchema):
 
     class Meta:
         model = Artifakt
+
+
 schemas['artifakt'] = ArtifaktSchema()
 
 
@@ -211,11 +224,18 @@ class Comment(Base):
 
 
 class CommentSchema(BaseSchema):
+    user = fields.Nested(UserSchema, only=['username'])
+    age = fields.Method(serialize='get_age')
+
+    # TODO: See if we really need fields.Method
+    def get_age(self, obj):
+        return obj.age
 
     class Meta:
         model = Comment
-schemas['comment'] = CommentSchema()
 
+
+schemas['comment'] = CommentSchema()
 
 
 # Would be nice if these could be inside the object instead ...
@@ -231,6 +251,8 @@ def artifakt_after_delete(mapper, connection, target):
         setattr(session, 'deletes', [target])
     else:
         getattr(session, 'deletes').append(target)
+
+
 # noinspection PyUnusedLocal
 
 
@@ -250,7 +272,6 @@ def artifakt_after_commit(session):
             # noinspection PyProtectedMember
             obj._delete()
         deletes.clear()
-
 
 # FIXME: Needed ?
 # Index('my_index', Artifakt.name, unique=True, mysql_length=255)
