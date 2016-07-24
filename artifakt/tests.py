@@ -10,6 +10,7 @@ from artifakt.utils.time import duration_string
 from nose.tools import assert_in, assert_true, assert_raises, assert_is_not_none,\
     assert_false, assert_is_none, assert_greater
 from pyramid import testing
+from pyramid_fullauth.models import User
 from sqlalchemy.exc import OperationalError, IntegrityError
 from sqlalchemy.testing import eq_
 from webob.multidict import MultiDict
@@ -85,6 +86,13 @@ class TestArtifact(unittest.TestCase):
         Base.metadata.create_all(engine)
         self.tmp_dir = TemporaryDirectory()
         models.storage = self.tmp_dir.name
+        # All uploads needs a user
+        self.user = User()
+        self.user.username = "test"
+        self.user.password = "1234"
+        self.user.email = "a@b.cd"
+        self.user.address_ip = "127.0.0.1"
+        DBSession.add(self.user)
 
     def tearDown(self):
         DBSession.remove()
@@ -100,6 +108,7 @@ class TestArtifact(unittest.TestCase):
     def generic_request(self, *args, **kwargs):
         request = testing.DummyRequest(*args, **kwargs)
         request.registry.settings['artifakt.storage'] = self.tmp_dir.name
+        request.user = self.user
         return request
 
     def upload_request(self, files: dict, metadata=None):
