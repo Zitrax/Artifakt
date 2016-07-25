@@ -4,8 +4,6 @@ import os
 from datetime import datetime
 from os.path import dirname
 
-from artifakt.utils.file import count_files
-from artifakt.utils.time import duration_string
 from marshmallow import fields
 from marshmallow_sqlalchemy import ModelSchema, ModelSchemaOpts
 from pyramid_basemodel import Base, Session as DBSession
@@ -27,6 +25,9 @@ from sqlalchemy.orm import (
     relationship)
 from sqlalchemy.orm.session import object_session
 from sqlalchemy.sql import func
+
+from artifakt.utils.file import count_files
+from artifakt.utils.time import duration_string
 
 logger = logging.getLogger(__name__)
 
@@ -107,6 +108,43 @@ class VcsSchema(BaseSchema):
 schemas['vcs'] = VcsSchema()
 
 
+class Customer(Base):
+    """Someone a delivery can be made to"""
+    __tablename__ = "customer"
+    id = Column(Integer, nullable=False, primary_key=True)
+    name = Column(Unicode(length=255), nullable=False)
+
+
+class CustomerSchema(BaseSchema):
+    class Meta:
+        model = Customer
+
+
+schemas['customer'] = CustomerSchema()
+
+
+class Delivery(Base):
+    """Represents a delivery of an artifakt to someone"""
+    __tablename__ = "delivery"
+    id = Column(Integer, nullable=False, primary_key=True)
+    artifakt_sha1 = Column(CHAR(length=40), ForeignKey('artifakt.sha1'), nullable=False)
+    comment = Column(UnicodeText)
+    target_id = Column(Integer, ForeignKey('customer.id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    time = Column(DateTime, default=func.now())
+
+    to = relationship("Customer")
+    by = relationship("User")
+
+
+class DeliverySchema(BaseSchema):
+    class Meta:
+        model = Delivery
+
+
+schemas['delivery'] = DeliverySchema()
+
+
 class Artifakt(Base):
     """One artifact is one or several files.
 
@@ -126,6 +164,7 @@ class Artifakt(Base):
     vcs = relationship("Vcs")
     bundle = relationship("Artifakt", backref='artifacts', remote_side='Artifakt.sha1')
     uploader = relationship("User")
+    deliveries = relationship(Delivery, backref='artifakt')
 
     @property
     def root_comments(self):
