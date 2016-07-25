@@ -98,6 +98,8 @@ def main(global_config, **settings):
 
     config.add_route('bundle', '/bundle/{sha1}')
 
+    config.add_route('customers', '/customers')
+
     config.add_route('upload', '/upload')
 
     config.scan()

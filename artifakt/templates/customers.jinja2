@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="{{ request.locale_name }}">
+<head>
+    {% include 'head.jinja2' %}
+    <title>Customers</title>
+</head>
+<body>
+{% include 'navbar.jinja2' %}
+<div class="container">
+    <button class="btn btn-sm btn-default" type="submit">Add customer</button>
+    <hr>
+    <table class="table table-striped table-hover table-condensed">
+        <tr>
+            <th>Name</th>
+        </tr>
+        {% for customer in customers %}
+            <tr>
+                <td>{{ customer.name }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+</body>
+</html>
