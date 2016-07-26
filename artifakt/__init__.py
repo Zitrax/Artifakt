@@ -1,15 +1,14 @@
+from artifakt.models import models
+from artifakt.models.models import (
+    DBSession,
+    Base,
+)
 from pyramid.config import Configurator
 from pyramid.interfaces import IRootFactory
 from pyramid.security import Allow, Everyone, ALL_PERMISSIONS
 from pyramid_fullauth.auth import BaseACLRootFactoryMixin
 from sqlalchemy import engine_from_config
 from zope.interface import implementer
-
-from artifakt.models import models
-from artifakt.models.models import (
-    DBSession,
-    Base,
-)
 
 
 def include_fullauth(config):
@@ -76,6 +75,8 @@ def main(global_config, **settings):
     config.add_static_view('js', 'static/js', cache_max_age=3600)
     config.add_static_view('css', 'static/css', cache_max_age=3600)
     config.add_static_view('img', 'static/img', cache_max_age=3600)
+    # This is the jquery ui images
+    config.add_static_view('images', 'static/css/images', cache_max_age=3600)
     config.add_static_view('bootstrap', 'static/bootstrap', cache_max_age=3600)
 
     config.add_route('home', '/')
