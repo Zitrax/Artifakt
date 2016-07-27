@@ -4,6 +4,8 @@ import os
 from datetime import datetime
 from os.path import dirname
 
+from artifakt.utils.file import count_files
+from artifakt.utils.time import duration_string
 from marshmallow import fields
 from marshmallow_sqlalchemy import ModelSchema, ModelSchemaOpts
 from pyramid_basemodel import Base, Session as DBSession
@@ -25,9 +27,6 @@ from sqlalchemy.orm import (
     relationship)
 from sqlalchemy.orm.session import object_session
 from sqlalchemy.sql import func
-
-from artifakt.utils.file import count_files
-from artifakt.utils.time import duration_string
 
 logger = logging.getLogger(__name__)
 
@@ -112,7 +111,7 @@ class Customer(Base):
     """Someone a delivery can be made to"""
     __tablename__ = "customer"
     id = Column(Integer, nullable=False, primary_key=True)
-    name = Column(Unicode(length=255), nullable=False)
+    name = Column(Unicode(length=255), nullable=False, unique=True)
 
 
 class CustomerSchema(BaseSchema):
