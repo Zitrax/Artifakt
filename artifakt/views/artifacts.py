@@ -1,6 +1,7 @@
 import mimetypes
 import tarfile
 import zipfile
+from datetime import datetime
 
 from artifakt import DBSession
 from artifakt.models.models import Artifakt, schemas
@@ -106,3 +107,14 @@ def artifact_comment_add(request):
     DBSession.add(comment)
     DBSession.flush()
     return schemas['comment'].dump(comment).data
+
+
+@view_config(route_name='artifact_delivery_add', request_method="POST", renderer="json")
+def artifact_delivery_add(request):
+    data = request.json_body
+    data['time'] = datetime.strptime(data['time'], '%Y-%m-%d')
+    data['user_id'] = request.user.id
+    delivery = schemas['delivery'].make_instance(data)
+    DBSession.add(delivery)
+    DBSession.flush()
+    return schemas['delivery'].dump(delivery).data

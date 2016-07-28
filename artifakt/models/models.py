@@ -137,6 +137,9 @@ class Delivery(Base):
 
 
 class DeliverySchema(BaseSchema):
+    to = fields.Nested(CustomerSchema)
+    by = fields.Nested(UserSchema, only=['username'])
+
     class Meta:
         model = Delivery
 

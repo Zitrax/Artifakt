@@ -10,6 +10,11 @@ def artifacts(_):
     return {'customers': DBSession.query(Customer).order_by(Customer.name.desc()).all()}
 
 
+@view_config(route_name='customers_json', renderer='json')
+def artifacts_json(_):
+    return {'customers': [schemas['customer'].dump(c).data for c in DBSession.query(Customer).all()]}
+
+
 @view_config(route_name='customers', request_method='POST')
 def add_customer(request):
     if 'name' not in request.POST:
@@ -20,3 +25,4 @@ def add_customer(request):
     DBSession.add(customer)
     DBSession.flush()
     return Response()
+

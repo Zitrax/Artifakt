@@ -93,6 +93,7 @@ def main(global_config, **settings):
     config.add_route('artifact_view', '/artifact/{sha1}/view')
     config.add_route('artifact_view_archive', '/artifact/{sha1}/view_archive')
     config.add_route('artifact_comment_add', '/artifact/{sha1}/comment')
+    config.add_route('artifact_delivery_add', '/artifact/{sha1}/delivery')
 
     config.add_route('artifacts', '/artifacts')
     config.add_route('artifacts_json', '/artifacts.json')
@@ -100,6 +101,7 @@ def main(global_config, **settings):
     config.add_route('bundle', '/bundle/{sha1}')
 
     config.add_route('customers', '/customers')
+    config.add_route('customers_json', '/customers.json')
 
     config.add_route('upload', '/upload')
 

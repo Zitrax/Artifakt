@@ -19,6 +19,71 @@ $(function () {
         }
     });
 
+    function add_delivery() {
+        delivery_dialog.dialog("close");
+        var sha1 = window.location.pathname.split('/').pop();
+        $.ajax({
+            url: window.location.pathname + '/delivery',
+            data: JSON.stringify({
+                'artifakt_sha1': sha1,
+                'comment': $('#delivery_comment').val(),
+                'target_id': $('#customer').val(),
+                'time': $('#delivery_time').val()
+            }),
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            dataType: "json"
+        }).done(function (data) {
+            $('#delivery_comment').val('');
+            $('#customer').val('');
+            $('#delivery_time').val(new Date().toDateInputValue());
+
+            $('#deliveries tr:last').after($('<tr>' +
+                '<td>' + new Date(data.time).toLocaleString() + '</td>' +
+                '<td>' + data.to.name + '</td>' +
+                '<td>' + data.comment + '</td>' +
+                '<td>' + data.by.username + '</td></tr>'))
+
+        }).fail(function () {
+            alert('fail');
+        });
+
+    }
+
+    var delivery_dialog = $("#delivery-dialog").dialog({
+        autoOpen: false,
+        modal: true,
+        buttons: {
+            "Add delivery": add_delivery,
+            Cancel: function () {
+                delivery_dialog.dialog("close");
+            }
+        },
+        close: function () {
+        }
+    });
+
+    $('#add_delivery').click(function (e) {
+        delivery_dialog.dialog("open");
+    });
+
+    $.getJSON('/customers.json', function (data) {
+        $.each(data.customers, function (key, value) {
+            $('#customer')
+                .append($("<option></option>")
+                    .attr("value", value.id)
+                    .text(value.name));
+        })
+    });
+
+    Date.prototype.toDateInputValue = (function () {
+        var local = new Date(this);
+        local.setMinutes(this.getMinutes() - this.getTimezoneOffset());
+        return local.toJSON().slice(0, 10);
+    });
+
+    $('#delivery_time').val(new Date().toDateInputValue());
+
     function add_comment(comment, parent_id, target, input) {
         var sha1 = window.location.pathname.split('/').pop();
         $.ajax({
