@@ -5,8 +5,9 @@ $(function () {
         var name = $("#name").val();
         $.post('', {name: name})
             .done(function () {
-                var $new_customer = $('<tr><td>' + name + '</td></tr>');
-                $('#customers tr:last').after($new_customer);
+                var $new_customer = $('<tr style="display: none;"><td>' + name + '</td></tr>');
+                $('#customers').find('tr:first').after($new_customer);
+                $new_customer.fadeIn(400);
                 $('#name').val('');
             })
             .fail(function () {
@@ -22,6 +23,14 @@ $(function () {
             Cancel: function () {
                 dialog.dialog("close");
             }
+        },
+        open: function () {
+            $("#dialog-form").off('keypress').on('keypress', function (e) {
+                if (e.keyCode == $.ui.keyCode.ENTER) {
+                    $(this).parent().find('.ui-dialog-buttonpane button:first').click();
+                    e.preventDefault();
+                }
+            });
         },
         close: function () {
         }

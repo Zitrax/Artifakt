@@ -38,11 +38,19 @@ $(function () {
             $('#customer').val('');
             $('#delivery_time').val(new Date().toDateInputValue());
 
-            $('#deliveries tr:last').after($('<tr>' +
+            var $new_row = $('<tr style="display: none;">' +
                 '<td>' + new Date(data.time).toLocaleString() + '</td>' +
                 '<td>' + data.to.name + '</td>' +
                 '<td>' + data.comment + '</td>' +
-                '<td>' + data.by.username + '</td></tr>'))
+                '<td>' + data.by.username + '</td>' +
+                '<td><span data-id="' + data.id + '" data-name="' + data.to.name + '" data-time="' +
+                new Date(data.time).toUTCString() + '" class="delete_delivery glyphicon glyphicon-trash"' +
+                ' aria-hidden="true"></span></td>' +
+                '</tr>'
+            );
+            $('#deliveries').show().find('tr:first').after($new_row);
+            $new_row.fadeIn(400);
+
 
         }).fail(function () {
             alert('fail');
@@ -59,11 +67,17 @@ $(function () {
                 delivery_dialog.dialog("close");
             }
         },
-        close: function () {
+        open: function () {
+            $("#delivery-dialog").off('keypress').on('keypress', function (e) {
+                if (e.keyCode == $.ui.keyCode.ENTER) {
+                    $(this).parent().find('.ui-dialog-buttonpane button:first').click();
+                    e.preventDefault();
+                }
+            });
         }
     });
 
-    $('#add_delivery').click(function (e) {
+    $('#add_delivery').click(function () {
         delivery_dialog.dialog("open");
     });
 
@@ -84,11 +98,12 @@ $(function () {
 
     $('#delivery_time').val(new Date().toDateInputValue());
 
-    $('span.delete_delivery').click(function () {
+    $(document).on('click', 'span.delete_delivery', function () {
         $('#delivery_delete_name').text($(this).data('name'));
         $('#delivery_delete_time').text(new Date($(this).data('time') + ' UTC').toLocaleString());
         var td_delete = $(this);
         $("#delete_delivery_confirm").dialog({
+            width: 400,
             modal: true,
             buttons: {
                 "Delete delivery": function () {
@@ -148,7 +163,7 @@ $(function () {
         }
     });
 
-    $("span.comment_reply a").click(function (e) {
+    $("span.comment_reply a").click(function () {
         // First remove any existing reply box
         $('.reply_list').remove();
         // Add new
