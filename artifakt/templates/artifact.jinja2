@@ -130,6 +130,7 @@
                         <th>To</th>
                         <th>Comment</th>
                         <th>By</th>
+                        <th></th>
                     </tr>
                     {% for delivery in artifact.deliveries %}
                         <tr>
@@ -141,11 +142,24 @@
                             <td>{{ delivery.to.name }}</td>
                             <td>{{ delivery.comment }}</td>
                             <td>{{ delivery.by }}</td>
+                            <td>
+                                <span data-id="{{ delivery.id }}"
+                                      data-name="{{ delivery.to.name }}"
+                                      data-time="{{ delivery.time }}"
+                                      class="delete_delivery glyphicon glyphicon-trash"
+                                      aria-hidden="true"></span>
+                            </td>
                         </tr>
                     {% endfor %}
                 </table>
             {% endif %}
         </div>
+    </div>
+
+    <div style="display: None;" id="delete_delivery_confirm" title="Delete delivery?">
+        <p><span class="ui-icon ui-icon-alert" style="float:left; margin:12px 12px 20px 0;"></span>The delivery record:<br>
+            <b><span id="delivery_delete_name">ERROR</span></b> at <b><span id="delivery_delete_time">ERROR</span></b><br>
+            will be permanently removed. Are you sure?</p>
     </div>
 
     <div class="panel panel-success">
@@ -178,7 +192,8 @@
             <label for="customer">Customer name</label>
             <select id="customer" name="customer" class="form-control"></select>
             <label for="delivery_comment">Comment</label>
-            <input type="text" name="delivery_comment" id="delivery_comment" class="form-control text ui-widget-content ui-corner-all">
+            <input type="text" name="delivery_comment" id="delivery_comment"
+                   class="form-control text ui-widget-content ui-corner-all">
             <label for="delivery_time">Delivery date</label>
             <input type="date" id="delivery_time" name="delivery_time">
             <!-- Allow form submission with keyboard without duplicating the dialog button -->

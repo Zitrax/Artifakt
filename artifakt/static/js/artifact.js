@@ -84,6 +84,29 @@ $(function () {
 
     $('#delivery_time').val(new Date().toDateInputValue());
 
+    $('span.delete_delivery').click(function () {
+        $('#delivery_delete_name').text($(this).data('name'));
+        $('#delivery_delete_time').text(new Date($(this).data('time') + ' UTC').toLocaleString());
+        var td_delete = $(this);
+        $("#delete_delivery_confirm").dialog({
+            modal: true,
+            buttons: {
+                "Delete delivery": function () {
+                    $(this).dialog("close");
+                    $.post(window.location.pathname + '/delivery_delete/' + td_delete.data('id'), function () {
+                        td_delete.closest('tr').fadeOut(400, function () {
+                            $(this).remove();
+                        });
+                    });
+                },
+                Cancel: function () {
+                    $(this).dialog("close");
+                }
+            }
+        });
+
+    });
+
     function add_comment(comment, parent_id, target, input) {
         var sha1 = window.location.pathname.split('/').pop();
         $.ajax({

@@ -4,7 +4,7 @@ import zipfile
 from datetime import datetime
 
 from artifakt import DBSession
-from artifakt.models.models import Artifakt, schemas
+from artifakt.models.models import Artifakt, schemas, Delivery
 from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest, HTTPConflict
 from pyramid.response import Response, FileResponse
 from pyramid.view import view_config
@@ -118,3 +118,10 @@ def artifact_delivery_add(request):
     DBSession.add(delivery)
     DBSession.flush()
     return schemas['delivery'].dump(delivery).data
+
+
+@view_config(route_name='artifact_delivery_delete', request_method="POST")
+def artifact_delivery_delete(request):
+    delivery = DBSession.query(Delivery).filter(Delivery.id == request.matchdict['id']).one()
+    DBSession.delete(delivery)
+    return Response()

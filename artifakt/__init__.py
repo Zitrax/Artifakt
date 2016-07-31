@@ -94,6 +94,7 @@ def main(global_config, **settings):
     config.add_route('artifact_view_archive', '/artifact/{sha1}/view_archive')
     config.add_route('artifact_comment_add', '/artifact/{sha1}/comment')
     config.add_route('artifact_delivery_add', '/artifact/{sha1}/delivery')
+    config.add_route('artifact_delivery_delete', '/artifact/{sha1}/delivery_delete/{id}')
 
     config.add_route('artifacts', '/artifacts')
     config.add_route('artifacts_json', '/artifacts.json')
