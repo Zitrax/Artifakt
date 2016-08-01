@@ -32,7 +32,7 @@ legend {
 Upload btn style
 ****************/
 
-.btn-file#buttonstyle {
+.btn-file#uploadbutton {
     width: 150px;
     border-radius: 10px;
 }

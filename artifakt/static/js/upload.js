@@ -37,8 +37,16 @@ $(function () {
             else
                 window.location.href = "/artifacts";
         }).fail(function (jqXHR, textStatus, errorThrown) {
-            alert("Error uploading file: " + jqXHR.responseJSON.error);
+            alert("Error uploading file: " + errorThrown);
+            $('.progress').addClass('hidden');
         });
+    });
+
+    $('#uploadbutton').bind("click", function () {
+        var imgVal = $('#file').val();
+        if (!imgVal) {
+            return false;
+        }
     });
 
     $(document).on('change', ':file', function () {

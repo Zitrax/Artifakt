@@ -3,9 +3,9 @@ import json
 import os
 import shutil
 
-from pyramid.view import view_config
-
 from artifakt.models.models import Artifakt, DBSession, schemas
+from pyramid.httpexceptions import HTTPBadRequest
+from pyramid.view import view_config
 
 
 def validate_metadata(data):
@@ -35,13 +35,17 @@ def upload_post(request):
 
     metadata = json.loads(request.POST.getone('metadata')) if 'metadata' in request.POST else None
     files = request.POST.getall('file')
+
+    if len(files) == 0 or (len(files) == 1 and not hasattr(files[0], 'file')):
+        raise HTTPBadRequest("No files or invalid file")
+
     # Don't know the full sha1 until later - so start out with 0
     if len(files) > 1:
         try:
             fn = metadata['artifakt']['comment']
         except KeyError:
             fn = None
-        bundle = Artifakt(sha1='0'*40,
+        bundle = Artifakt(sha1='0' * 40,
                           is_bundle=True,
                           filename=fn)
         # For bundles we are using the comment for the bundle name - so drop it on the files
@@ -112,7 +116,7 @@ def upload_post(request):
 
     # Calculate bundle sha1
     if bundle:
-        bundle.sha1 = format(sum(int(a.sha1, 16) for a in artifacts) % int('f'*40, 16), 'x')
+        bundle.sha1 = format(sum(int(a.sha1, 16) for a in artifacts) % int('f' * 40, 16), 'x')
         DBSession.flush()
 
     return {"artifacts": [a.sha1 for a in artifacts]}
