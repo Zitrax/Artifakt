@@ -47,7 +47,8 @@ def upload_post(request):
             fn = None
         bundle = Artifakt(sha1='0' * 40,
                           is_bundle=True,
-                          filename=fn)
+                          filename=fn,
+                          uploaded_by=request.user.id)
         # For bundles we are using the comment for the bundle name - so drop it on the files
         try:
             metadata['artifakt']['comment'] = None

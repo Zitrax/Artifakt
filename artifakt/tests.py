@@ -93,6 +93,7 @@ class TestArtifact(unittest.TestCase):
         self.user.email = "a@b.cd"
         self.user.address_ip = "127.0.0.1"
         DBSession.add(self.user)
+        DBSession.flush()
 
     def tearDown(self):
         DBSession.remove()
@@ -193,6 +194,7 @@ class TestArtifact(unittest.TestCase):
         eq_(None, files[0].bundle_id)
         assert_is_not_none(files[1].bundle_id)
         eq_(files[1].bundle_id, files[2].bundle_id)
+        assert_true(all(a.uploader.username == 'test' for a in files))
         request = self.upload_request({'file.bin': b'bin', 'file.baz': b'baz'})
         upload_post(request)
         eq_(200, request.response.status_code)
@@ -204,6 +206,7 @@ class TestArtifact(unittest.TestCase):
         eq_(None, files[3].bundle_id)
         assert_is_not_none(files[4].bundle_id)
         eq_(files[4].bundle_id, files[5].bundle_id)
+        assert_true(all(a.uploader.username == 'test' for a in files))
 
     def test_delete(self):
         # Upload an artifact, and check that file exists
