@@ -51,16 +51,12 @@
 
     <h2>Latest comments</h2>
     <table class="table table-striped table-hover table-condensed">
-        <tr>
-        </tr>
         {% for comment in comments %}
             <tr>
-                <td>
-                <td><span class="comment">{{ comment.comment }}</span>&nbsp;&mdash;&nbsp;
+                <td><span class="comment">{{ comment.comment }}</span>&nbsp;&mdash; on <a
+                            href="/artifact/{{ comment.artifakt_sha1 }}">{{ comment.artifakt.name }}</a>&nbsp;&mdash;
                     <span class="comment_by">{{ comment.user }}</span>
-                    <span class="comment_age" title="{{ comment.time }}"><a
-                            href="/artifact/{{ comment.artifakt_sha1 }}">{{ comment.age }} ago</a></span>&nbsp;
-                </td>
+                    <span class="comment_age" title="{{ comment.time }}">{{ comment.age }} ago</span>&nbsp;
                 </td>
             </tr>
         {% endfor %}

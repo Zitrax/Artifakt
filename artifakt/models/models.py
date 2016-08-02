@@ -169,6 +169,10 @@ class Artifakt(Base):
     deliveries = relationship(Delivery, backref='artifakt')
 
     @property
+    def name(self):
+        return self.filename or self.sha1
+
+    @property
     def root_comments(self):
         return [c for c in self.comments if c.parent_id is None]
 
