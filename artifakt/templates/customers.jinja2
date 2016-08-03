@@ -18,7 +18,7 @@
         </tr>
         {% for customer in customers %}
             <tr>
-                <td>{{ customer.name }}</td>
+                <td><a href="/customer/{{ customer.id }}">{{ customer.name }}</a></td>
             </tr>
         {% endfor %}
     </table>

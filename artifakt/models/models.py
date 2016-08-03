@@ -132,7 +132,7 @@ class Delivery(Base):
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     time = Column(DateTime, default=func.now())
 
-    to = relationship("Customer")
+    to = relationship("Customer", backref='deliveries')
     by = relationship("User")
 
 
