@@ -107,6 +107,8 @@ def main(global_config, **settings):
 
     config.add_route('upload', '/upload')
 
+    config.add_route('search', '/search/{string}')
+
     config.scan()
 
     return config.make_wsgi_app()

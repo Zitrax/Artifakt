@@ -22,11 +22,20 @@
                     <li><a href="/admin">Admin</a></li>
                 {% endif %}
             </ul>
+
             {% if request.user %}
                 <ul class="nav navbar-nav navbar-right">
                     <li><a href="/logout">Log out {{ request.user.username or request.user.email }}</a></li>
                 </ul>
             {% endif %}
+
+            <div class="navbar-form navbar-right">
+                <div class="form-group">
+                    <input id="search" title="Search for filename or file comment" type="text" class="form-control"
+                           placeholder="Search">
+                </div>
+            </div>
+
 
         </div><!-- /.navbar-collapse -->
 
