@@ -6,20 +6,20 @@ from io import BytesIO
 from tempfile import TemporaryDirectory
 
 import transaction
+from artifakt.models import models
+from artifakt.models.models import Base
+from artifakt.models.models import DBSession, Artifakt
+from artifakt.utils.file import count_files
 from artifakt.utils.time import duration_string
-from nose.tools import assert_in, assert_true, assert_raises, assert_is_not_none,\
+from artifakt.views.artifacts import artifact_delete, artifact_download, artifact_comment_add
+from artifakt.views.upload import upload_post
+from nose.tools import assert_in, assert_true, assert_raises, assert_is_not_none, \
     assert_false, assert_is_none, assert_greater
 from pyramid import testing
 from pyramid_fullauth.models import User
 from sqlalchemy.exc import OperationalError, IntegrityError
 from sqlalchemy.testing import eq_
 from webob.multidict import MultiDict
-
-from artifakt.models import models
-from artifakt.models.models import DBSession, Artifakt
-from artifakt.utils.file import count_files
-from artifakt.views.artifacts import artifact_delete, artifact_download
-from artifakt.views.upload import upload_post
 
 
 # Enable to see SQL logs
@@ -37,7 +37,7 @@ class TestMyViewSuccessCondition(unittest.TestCase):
         from artifakt.models.models import (
             Base,
             Artifakt,
-            )
+        )
         DBSession.configure(bind=engine)
         Base.metadata.create_all(engine)
         with transaction.manager:
@@ -80,10 +80,10 @@ class TestArtifact(unittest.TestCase):
     def setUp(self):
         self.config = testing.setUp()
         from sqlalchemy import create_engine
-        engine = create_engine('sqlite://')
-        from artifakt.models.models import Base
-        DBSession.configure(bind=engine)
-        Base.metadata.create_all(engine)
+        self.engine = create_engine('sqlite://')
+        DBSession.remove()  # Must delete a session if it already exists
+        DBSession.configure(bind=self.engine)
+        Base.metadata.create_all(self.engine)
         self.tmp_dir = TemporaryDirectory()
         models.storage = self.tmp_dir.name
         # All uploads needs a user
@@ -96,8 +96,9 @@ class TestArtifact(unittest.TestCase):
         DBSession.flush()
 
     def tearDown(self):
-        DBSession.remove()
         testing.tearDown()
+        transaction.abort()
+        Base.metadata.drop_all(self.engine)
 
     def test_upload_no_file(self):
         request = testing.DummyRequest()
@@ -233,6 +234,23 @@ class TestArtifact(unittest.TestCase):
         response = artifact_download(request, inline=True)
         eq_(200, response.status_code)
         # TODO: Verify downloaded file
+
+    def test_add_comment(self):
+        af = self.simple_upload()
+        request = self.generic_request()
+        json_comment = {'comment': 'test',
+                        'artifakt_sha1': af.sha1,
+                        'parent_id': None}
+        setattr(request, 'json_body', json_comment)
+        artifact_comment_add(request)
+        eq_(af.comments[0].comment, 'test')
+        eq_(len(af.root_comments), 1)
+        json_comment['parent_id'] = af.comments[0].id
+        json_comment['comment'] = 'test2'
+        artifact_comment_add(request)
+        DBSession.refresh(af)  # Or initial data is cached
+        eq_(af.comments[1].comment, 'test2')
+        eq_(len(af.root_comments), 1)
 
 
 class TestTime(unittest.TestCase):
