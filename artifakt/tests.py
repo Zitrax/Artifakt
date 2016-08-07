@@ -6,13 +6,6 @@ from io import BytesIO
 from tempfile import TemporaryDirectory
 
 import transaction
-from artifakt.models import models
-from artifakt.models.models import Base
-from artifakt.models.models import DBSession, Artifakt
-from artifakt.utils.file import count_files
-from artifakt.utils.time import duration_string
-from artifakt.views.artifacts import artifact_delete, artifact_download, artifact_comment_add
-from artifakt.views.upload import upload_post
 from nose.tools import assert_in, assert_true, assert_raises, assert_is_not_none, \
     assert_false, assert_is_none, assert_greater
 from pyramid import testing
@@ -21,12 +14,25 @@ from sqlalchemy.exc import OperationalError, IntegrityError
 from sqlalchemy.testing import eq_
 from webob.multidict import MultiDict
 
+from artifakt.models import models
+from artifakt.models.models import Base
+from artifakt.models.models import DBSession, Artifakt, Customer
+from artifakt.utils.file import count_files
+from artifakt.utils.time import duration_string
+from artifakt.views.artifacts import artifact_delete, artifact_download, artifact_comment_add, artifact_delivery_add
+from artifakt.views.upload import upload_post
+
 
 # Enable to see SQL logs
 # import logging
 # log = logging.getLogger("sqlalchemy")
 # log.addHandler(logging.StreamHandler())
 # log.setLevel(logging.DEBUG)
+
+
+# If you see a an error like: AttributeError: 'str' object has no attribute '__cause__'
+# it's hiding the real exception since the logcapture plugin formats the error to a string
+# Use --nologcapture to avoid this.
 
 
 class TestMyViewSuccessCondition(unittest.TestCase):
@@ -251,6 +257,25 @@ class TestArtifact(unittest.TestCase):
         DBSession.refresh(af)  # Or initial data is cached
         eq_(af.comments[1].comment, 'test2')
         eq_(len(af.root_comments), 1)
+
+    def test_add_delivery(self):
+        # Can't add delivery without a customer
+        customer = Customer(name='Blargh')
+        DBSession.add(customer)
+        af = self.simple_upload()
+        request = self.generic_request()
+        json_delivery = {'comment': 'åäö',
+                         'artifakt_sha1': af.sha1,
+                         'target_id': customer.id,
+                         'time': '1973-06-11'}
+        setattr(request, 'json_body', json_delivery)
+        artifact_delivery_add(request)
+        eq_(1, len(af.deliveries))
+        delivery = af.deliveries[0]
+        eq_(delivery.artifakt_sha1, af.sha1)
+        eq_(delivery.comment, 'åäö')
+        eq_(delivery.to.name, customer.name)
+        eq_(delivery.by.username, 'test')
 
 
 class TestTime(unittest.TestCase):
