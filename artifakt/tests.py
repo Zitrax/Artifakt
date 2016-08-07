@@ -19,7 +19,8 @@ from artifakt.models.models import Base
 from artifakt.models.models import DBSession, Artifakt, Customer
 from artifakt.utils.file import count_files
 from artifakt.utils.time import duration_string
-from artifakt.views.artifacts import artifact_delete, artifact_download, artifact_comment_add, artifact_delivery_add
+from artifakt.views.artifacts import artifact_delete, artifact_download, artifact_comment_add, artifact_delivery_add, \
+    artifact_archive_view
 from artifakt.views.upload import upload_post
 
 
@@ -276,6 +277,18 @@ class TestArtifact(unittest.TestCase):
         eq_(delivery.comment, 'åäö')
         eq_(delivery.to.name, customer.name)
         eq_(delivery.by.username, 'test')
+
+    def test_archive_view(self):
+        with open('test_data/foo.zip', 'rb') as zipf:
+            request = self.upload_request({'foo.zip': zipf.read()})
+            response = upload_post(request)
+            eq_(200, request.response.status_code)
+            request = self.generic_request()
+            request.matchdict['sha1'] = response['artifacts'][0]
+            response = artifact_archive_view(request)
+            eq_("Artifact archive: foo.zip", response['title'])
+            eq_("foo", response['zipfiles'][0].filename)
+            # TODO: Add tarfile test
 
 
 class TestTime(unittest.TestCase):
