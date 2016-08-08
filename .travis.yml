@@ -4,8 +4,9 @@ python:
   - "3.5"
 os:
   - linux
-  - osx
   - win
+  # osx is not working at the moment on travis... try later.
+  # - osx
 # command to install dependencies
 install:
   - pip install coveralls
