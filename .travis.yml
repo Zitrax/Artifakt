@@ -1,0 +1,13 @@
+language: python
+python:
+  - "3.4"
+  - "3.5"
+# command to install dependencies
+install:
+  - pip install coveralls
+  - python setup.py develop
+# command to run tests
+script:
+  nosetests  --with-coverage
+#after_success:
+#  coveralls
