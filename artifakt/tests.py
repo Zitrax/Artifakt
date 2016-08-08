@@ -279,7 +279,8 @@ class TestArtifact(unittest.TestCase):
         eq_(delivery.by.username, 'test')
 
     def test_archive_view(self):
-        with open('test_data/foo.zip', 'rb') as zipf:
+        this_dir = os.path.dirname(os.path.realpath(__file__))
+        with open(os.path.join(this_dir, 'test_data/foo.zip'), 'rb') as zipf:
             request = self.upload_request({'foo.zip': zipf.read()})
             response = upload_post(request)
             eq_(200, request.response.status_code)
