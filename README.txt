@@ -22,3 +22,6 @@ SQLite:
 
 - $VENV/bin/pserve development.ini
 
+## Info
+
+[![Build Status](https://travis-ci.org/Zitrax/Artifakt.svg?branch=master)](https://travis-ci.org/Zitrax/Artifakt)
