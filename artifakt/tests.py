@@ -35,6 +35,7 @@ from artifakt.views.upload import upload_post
 # it's hiding the real exception since the logcapture plugin formats the error to a string
 # Use --nologcapture to avoid this.
 
+# TODO: Extract base class from setup/teardown
 
 class TestMyViewSuccessCondition(unittest.TestCase):
     def setUp(self):
@@ -45,6 +46,7 @@ class TestMyViewSuccessCondition(unittest.TestCase):
             Base,
             Artifakt,
         )
+        DBSession.remove()  # Must delete a session if it already exists
         DBSession.configure(bind=engine)
         Base.metadata.create_all(engine)
         with transaction.manager:
@@ -70,6 +72,7 @@ class TestMyViewFailureCondition(unittest.TestCase):
         self.config = testing.setUp()
         from sqlalchemy import create_engine
         engine = create_engine('sqlite://')
+        DBSession.remove()  # Must delete a session if it already exists
         DBSession.configure(bind=engine)
 
     def tearDown(self):
