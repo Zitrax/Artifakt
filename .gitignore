@@ -3,3 +3,12 @@
 .idea/vcs.xml
 artifakt.egg-info/
 **/__pycache__/
+.coverage
+.idea/artifakt.iml
+.idea/dataSources.ids
+.idea/dataSources.local.xml
+.idea/dataSources.xml
+artifakt.sqlite
+artifakt/static/css/images/Thumbs.db
+artifakt/static/img/Thumbs.db
+
