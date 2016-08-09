@@ -25,3 +25,4 @@ SQLite:
 ## Info
 
 [![Build Status](https://travis-ci.org/Zitrax/Artifakt.svg?branch=master)](https://travis-ci.org/Zitrax/Artifakt)
+[![Coverage Status](https://coveralls.io/repos/github/Zitrax/Artifakt/badge.svg?branch=master)](https://coveralls.io/github/Zitrax/Artifakt?branch=master)
