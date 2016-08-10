@@ -20,7 +20,7 @@ from artifakt.models.models import DBSession, Artifakt, Customer
 from artifakt.utils.file import count_files
 from artifakt.utils.time import duration_string
 from artifakt.views.artifacts import artifact_delete, artifact_download, artifact_comment_add, artifact_delivery_add, \
-    artifact_archive_view
+    artifact_archive_view, artifact_delivery_delete, artifacts_json
 from artifakt.views.upload import upload_post
 
 
@@ -281,6 +281,13 @@ class TestArtifact(unittest.TestCase):
         eq_(delivery.to.name, customer.name)
         eq_(delivery.by.username, 'test')
 
+        # And delete it
+        request = self.generic_request()
+        request.matchdict['id'] = delivery.id
+        eq_(200, artifact_delivery_delete(request).status_code)
+        DBSession.refresh(af)
+        eq_(0, len(af.deliveries))
+
     def test_archive_view(self):
         this_dir = os.path.dirname(os.path.realpath(__file__))
         with open(os.path.join(this_dir, 'test_data/foo.zip'), 'rb') as zipf:
@@ -293,6 +300,14 @@ class TestArtifact(unittest.TestCase):
             eq_("Artifact archive: foo.zip", response['title'])
             eq_("foo", response['zipfiles'][0].filename)
             # TODO: Add tarfile test
+
+    def test_artifacts_json(self):
+        af = self.simple_upload()
+        data = artifacts_json(self.generic_request())
+        eq_(1, len(data['artifacts']))
+        af_json = data['artifacts'][0]
+        eq_(af.filename, af_json['filename'])
+        eq_(af.sha1, af_json['sha1'])
 
 
 class TestTime(unittest.TestCase):
