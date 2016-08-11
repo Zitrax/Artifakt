@@ -20,7 +20,7 @@ from artifakt.models.models import DBSession, Artifakt, Customer
 from artifakt.utils.file import count_files
 from artifakt.utils.time import duration_string
 from artifakt.views.artifacts import artifact_delete, artifact_download, artifact_comment_add, artifact_delivery_add, \
-    artifact_archive_view, artifact_delivery_delete, artifacts_json
+    artifact_archive_view, artifact_delivery_delete, artifacts_json, artifact_json
 from artifakt.views.upload import upload_post
 
 
@@ -308,6 +308,14 @@ class TestArtifact(unittest.TestCase):
         af_json = data['artifacts'][0]
         eq_(af.filename, af_json['filename'])
         eq_(af.sha1, af_json['sha1'])
+
+    def test_artifact_json(self):
+        af = self.simple_upload()
+        request = self.generic_request()
+        request.matchdict['sha1'] = af.sha1
+        data = artifact_json(request)
+        eq_(af.filename, data['filename'])
+        eq_(af.sha1, data['sha1'])
 
 
 class TestTime(unittest.TestCase):
