@@ -6,14 +6,6 @@ from io import BytesIO
 from tempfile import TemporaryDirectory
 
 import transaction
-from nose.tools import assert_in, assert_true, assert_raises, assert_is_not_none, \
-    assert_false, assert_is_none, assert_greater
-from pyramid import testing
-from pyramid_fullauth.models import User
-from sqlalchemy.exc import OperationalError, IntegrityError
-from sqlalchemy.testing import eq_
-from webob.multidict import MultiDict
-
 from artifakt.models import models
 from artifakt.models.models import Base
 from artifakt.models.models import DBSession, Artifakt, Customer
@@ -21,7 +13,15 @@ from artifakt.utils.file import count_files
 from artifakt.utils.time import duration_string
 from artifakt.views.artifacts import artifact_delete, artifact_download, artifact_comment_add, artifact_delivery_add, \
     artifact_archive_view, artifact_delivery_delete, artifacts_json, artifact_json
+from artifakt.views.artifacts import artifacts
 from artifakt.views.upload import upload_post
+from nose.tools import assert_in, assert_true, assert_raises, assert_is_not_none, \
+    assert_false, assert_is_none, assert_greater
+from pyramid import testing
+from pyramid_fullauth.models import User
+from sqlalchemy.exc import OperationalError, IntegrityError
+from sqlalchemy.testing import eq_
+from webob.multidict import MultiDict
 
 
 # Enable to see SQL logs
@@ -35,28 +35,40 @@ from artifakt.views.upload import upload_post
 # it's hiding the real exception since the logcapture plugin formats the error to a string
 # Use --nologcapture to avoid this.
 
-# TODO: Extract base class from setup/teardown
 
-class TestMyViewSuccessCondition(unittest.TestCase):
-    def setUp(self):
+class BaseTest(unittest.TestCase):
+    def setUp(self, create=True):
         self.config = testing.setUp()
         from sqlalchemy import create_engine
-        engine = create_engine('sqlite://')
-        from artifakt.models.models import (
-            Base,
-            Artifakt,
-        )
+        self.engine = create_engine('sqlite://')
         DBSession.remove()  # Must delete a session if it already exists
-        DBSession.configure(bind=engine)
-        Base.metadata.create_all(engine)
+        DBSession.configure(bind=self.engine)
+        if create:
+            Base.metadata.create_all(self.engine)
+            self.tmp_dir = TemporaryDirectory()
+            models.storage = self.tmp_dir.name
+            # All uploads needs a user
+            self.user = User()
+            self.user.username = "test"
+            self.user.password = "1234"
+            self.user.email = "a@b.cd"
+            self.user.address_ip = "127.0.0.1"
+            DBSession.add(self.user)
+            DBSession.flush()
+
+    def tearDown(self):
+        testing.tearDown()
+        transaction.abort()
+        Base.metadata.drop_all(self.engine)
+
+
+class TestMyViewSuccessCondition(BaseTest):
+    def setUp(self, **kwargs):
+        super(TestMyViewSuccessCondition, self).setUp()
         with transaction.manager:
             # noinspection PyArgumentList
             model = Artifakt(filename='one', sha1='deadbeef')
             DBSession.add(model)
-
-    def tearDown(self):
-        DBSession.remove()
-        testing.tearDown()
 
     def test_passing_view(self):
         from artifakt.views.artifacts import artifact
@@ -67,49 +79,17 @@ class TestMyViewSuccessCondition(unittest.TestCase):
         self.assertEqual(info['artifact'].sha1, 'deadbeef')
 
 
-class TestMyViewFailureCondition(unittest.TestCase):
-    def setUp(self):
-        self.config = testing.setUp()
-        from sqlalchemy import create_engine
-        engine = create_engine('sqlite://')
-        DBSession.remove()  # Must delete a session if it already exists
-        DBSession.configure(bind=engine)
-
-    def tearDown(self):
-        DBSession.remove()
-        testing.tearDown()
+class TestMyViewFailureCondition(BaseTest):
+    def setUp(self, **kwargs):
+        super(TestMyViewFailureCondition, self).setUp(create=False)
 
     def test_failing_view(self):
-        from artifakt.views.artifacts import artifacts
         request = testing.DummyRequest()
         with self.assertRaises(OperationalError):
             artifacts(request)
 
 
-class TestArtifact(unittest.TestCase):
-    def setUp(self):
-        self.config = testing.setUp()
-        from sqlalchemy import create_engine
-        self.engine = create_engine('sqlite://')
-        DBSession.remove()  # Must delete a session if it already exists
-        DBSession.configure(bind=self.engine)
-        Base.metadata.create_all(self.engine)
-        self.tmp_dir = TemporaryDirectory()
-        models.storage = self.tmp_dir.name
-        # All uploads needs a user
-        self.user = User()
-        self.user.username = "test"
-        self.user.password = "1234"
-        self.user.email = "a@b.cd"
-        self.user.address_ip = "127.0.0.1"
-        DBSession.add(self.user)
-        DBSession.flush()
-
-    def tearDown(self):
-        testing.tearDown()
-        transaction.abort()
-        Base.metadata.drop_all(self.engine)
-
+class TestArtifact(BaseTest):
     def test_upload_no_file(self):
         request = testing.DummyRequest()
         response = upload_post(request)
