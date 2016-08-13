@@ -11,6 +11,7 @@ from artifakt.models.models import Base
 from artifakt.models.models import DBSession, Artifakt, Customer
 from artifakt.utils.file import count_files
 from artifakt.utils.time import duration_string
+from artifakt.views.admin import admin, verify_fs
 from artifakt.views.artifacts import artifact_delete, artifact_download, artifact_comment_add, artifact_delivery_add, \
     artifact_archive_view, artifact_delivery_delete, artifacts_json, artifact_json
 from artifakt.views.artifacts import artifacts
@@ -48,7 +49,7 @@ class BaseTest(unittest.TestCase):
         if create:
             Base.metadata.create_all(self.engine)
             self.tmp_dir = TemporaryDirectory()
-            models.storage = self.tmp_dir.name
+            models.set_storage(self.tmp_dir.name)
             # All uploads needs a user
             self.user = User()
             self.user.username = "test"
@@ -313,6 +314,27 @@ class TestBundle(BaseTest):
         request.matchdict['sha1'] = 'abc'
         with self.assertRaises(HTTPNotFound):
             bundle(request)
+
+
+class TestAdmin(BaseTest):
+    # TODO: Use something like pyramid.paster.get_app('testing.ini') to test the permissions
+    def test_admin(self):
+        request = self.generic_request()
+        data = admin(request)
+        eq_(200, request.response.status_code)
+        assert_in('data', data)
+        assert_in('Data storage', data['data'])
+        assert_true(os.path.isdir(data['data']['Data storage']))
+
+    def test_verify_fs(self):
+        # TODO: Should also test with some items in the lists
+        request = self.generic_request()
+        data = verify_fs(request)
+        eq_(200, request.response.status_code)
+        assert_in('not_on_disk', data)
+        assert_in('not_in_db', data)
+        eq_(0, len(data['not_in_db']))
+        eq_(0, len(data['not_on_disk']))
 
 
 class TestTime(unittest.TestCase):

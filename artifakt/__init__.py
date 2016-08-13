@@ -70,7 +70,7 @@ def main(global_config, **settings):
     config.include('pyramid_chameleon')
     include_fullauth(config)
 
-    models.storage = settings['artifakt.storage']
+    models.set_storage(settings['artifakt.storage'])
 
     config.add_static_view('js', 'static/js', cache_max_age=3600)
     config.add_static_view('css', 'static/css', cache_max_age=3600)

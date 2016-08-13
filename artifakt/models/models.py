@@ -31,8 +31,17 @@ from sqlalchemy.sql import func
 logger = logging.getLogger(__name__)
 
 # Set by main
-# FIXME: Is there a better way ?
-storage = None
+# FIXME: These should not be globals like this
+__storage = None
+
+
+def storage():
+    return __storage
+
+
+def set_storage(val):
+    global __storage
+    __storage = val
 
 
 def sizeof_fmt(num, suffix='B'):
@@ -182,7 +191,7 @@ class Artifakt(Base):
 
     @property
     def file(self):
-        return os.path.join(storage, self.sha1[0:2], self.sha1[2:])
+        return os.path.join(storage(), self.sha1[0:2], self.sha1[2:])
 
     @property
     def size(self):
