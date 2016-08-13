@@ -11,4 +11,4 @@ def bundle(request):
     bundle_ = DBSession.query(Artifakt).filter(Artifakt.sha1 == sha1).one_or_none()
     if bundle_:
         return {'bundle': bundle_}
-    raise HTTPNotFound("No bundke with sha1 {} found".format(sha1))
+    raise HTTPNotFound("No bundle with sha1 {} found".format(sha1))

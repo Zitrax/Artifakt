@@ -14,10 +14,12 @@ from artifakt.utils.time import duration_string
 from artifakt.views.artifacts import artifact_delete, artifact_download, artifact_comment_add, artifact_delivery_add, \
     artifact_archive_view, artifact_delivery_delete, artifacts_json, artifact_json
 from artifakt.views.artifacts import artifacts
+from artifakt.views.bundle import bundle
 from artifakt.views.upload import upload_post
 from nose.tools import assert_in, assert_true, assert_raises, assert_is_not_none, \
     assert_false, assert_is_none, assert_greater
 from pyramid import testing
+from pyramid.httpexceptions import HTTPNotFound
 from pyramid_fullauth.models import User
 from sqlalchemy.exc import OperationalError, IntegrityError
 from sqlalchemy.testing import eq_
@@ -61,6 +63,29 @@ class BaseTest(unittest.TestCase):
         transaction.abort()
         Base.metadata.drop_all(self.engine)
 
+    def generic_request(self, *args, **kwargs):
+        request = testing.DummyRequest(*args, **kwargs)
+        request.registry.settings['artifakt.storage'] = self.tmp_dir.name
+        request.user = self.user
+        return request
+
+    def upload_request(self, files: dict, metadata=None):
+        if metadata is None:
+            metadata = '{}'
+        fields = MultiDict({'metadata': metadata})
+        for name, content in files.items():
+            fs = FieldStorage()
+            fs.file = BytesIO(content)
+            fs.filename = name
+            fields.add('file', fs)
+        return self.generic_request(post=fields)
+
+    def simple_upload(self):
+        request = self.upload_request({'file.foo': b'foo'})
+        upload_post(request)
+        eq_(200, request.response.status_code)
+        return DBSession.query(Artifakt).one()
+
 
 class TestMyViewSuccessCondition(BaseTest):
     def setUp(self, **kwargs):
@@ -96,23 +121,6 @@ class TestArtifact(BaseTest):
         assert_in('error', response)
         eq_('Missing file field in POST request', response['error'])
         eq_(400, request.response.status_code)
-
-    def generic_request(self, *args, **kwargs):
-        request = testing.DummyRequest(*args, **kwargs)
-        request.registry.settings['artifakt.storage'] = self.tmp_dir.name
-        request.user = self.user
-        return request
-
-    def upload_request(self, files: dict, metadata=None):
-        if metadata is None:
-            metadata = '{}'
-        fields = MultiDict({'metadata': metadata})
-        for name, content in files.items():
-            fs = FieldStorage()
-            fs.file = BytesIO(content)
-            fs.filename = name
-            fields.add('file', fs)
-        return self.generic_request(post=fields)
 
     def test_upload(self):
         # Upload a new file
@@ -169,12 +177,6 @@ class TestArtifact(BaseTest):
         # Now there should be neither an artifakt object or a file
         eq_(0, count_files(self.tmp_dir.name))
         eq_(0, DBSession.query(Artifakt).count())
-
-    def simple_upload(self):
-        request = self.upload_request({'file.foo': b'foo'})
-        upload_post(request)
-        eq_(200, request.response.status_code)
-        return DBSession.query(Artifakt).one()
 
     def test_upload_bundle(self):
         request = self.upload_request({'file.foo': b'foo', 'file.bar': b'bar'})
@@ -296,6 +298,21 @@ class TestArtifact(BaseTest):
         data = artifact_json(request)
         eq_(af.filename, data['filename'])
         eq_(af.sha1, data['sha1'])
+
+
+class TestBundle(BaseTest):
+    def test_bundle(self):
+        request = self.upload_request({'file.foo': b'foo', 'file.bar': b'bar'})
+        upload_post(request)
+        request = self.generic_request()
+        bd = DBSession.query(Artifakt).filter(Artifakt.is_bundle).one()
+        request.matchdict['sha1'] = bd.sha1
+        res = bundle(request)
+        assert_in('bundle', res)
+        eq_(res['bundle'].sha1, bd.sha1)
+        request.matchdict['sha1'] = 'abc'
+        with self.assertRaises(HTTPNotFound):
+            bundle(request)
 
 
 class TestTime(unittest.TestCase):
