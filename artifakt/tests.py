@@ -15,12 +15,10 @@ from artifakt.views.admin import admin, verify_fs
 from artifakt.views.artifacts import artifact_delete, artifact_download, artifact_comment_add, artifact_delivery_add, \
     artifact_archive_view, artifact_delivery_delete, artifacts_json, artifact_json
 from artifakt.views.artifacts import artifacts
-from artifakt.views.bundle import bundle
 from artifakt.views.upload import upload_post
 from nose.tools import assert_in, assert_true, assert_raises, assert_is_not_none, \
     assert_false, assert_is_none, assert_greater
 from pyramid import testing
-from pyramid.httpexceptions import HTTPNotFound
 from pyramid_fullauth.models import User
 from sqlalchemy.exc import OperationalError, IntegrityError
 from sqlalchemy.testing import eq_
@@ -183,7 +181,7 @@ class TestArtifact(BaseTest):
         request = self.upload_request({'file.foo': b'foo', 'file.bar': b'bar'})
         upload_post(request)
         eq_(200, request.response.status_code)
-        files = DBSession.query(Artifakt).all()
+        files = DBSession.query(Artifakt).order_by(Artifakt.bundle_id).all()
         eq_(3, len(files))  # Two files + the bundle itself
         eq_(None, files[0].bundle_id)
         assert_is_not_none(files[1].bundle_id)
@@ -192,13 +190,13 @@ class TestArtifact(BaseTest):
         request = self.upload_request({'file.bin': b'bin', 'file.baz': b'baz'})
         upload_post(request)
         eq_(200, request.response.status_code)
-        files = DBSession.query(Artifakt).all()
+        files = DBSession.query(Artifakt).order_by(Artifakt.bundle_id).all()
         eq_(6, len(files))  # 4 files + 2 bundles
         eq_(None, files[0].bundle_id)
-        assert_is_not_none(files[1].bundle_id)
-        eq_(files[1].bundle_id, files[2].bundle_id)
-        eq_(None, files[3].bundle_id)
+        eq_(None, files[1].bundle_id)
+        assert_is_not_none(files[2].bundle_id)
         assert_is_not_none(files[4].bundle_id)
+        eq_(files[2].bundle_id, files[3].bundle_id)
         eq_(files[4].bundle_id, files[5].bundle_id)
         assert_true(all(a.uploader.username == 'test' for a in files))
 
@@ -299,21 +297,6 @@ class TestArtifact(BaseTest):
         data = artifact_json(request)
         eq_(af.filename, data['filename'])
         eq_(af.sha1, data['sha1'])
-
-
-class TestBundle(BaseTest):
-    def test_bundle(self):
-        request = self.upload_request({'file.foo': b'foo', 'file.bar': b'bar'})
-        upload_post(request)
-        request = self.generic_request()
-        bd = DBSession.query(Artifakt).filter(Artifakt.is_bundle).one()
-        request.matchdict['sha1'] = bd.sha1
-        res = bundle(request)
-        assert_in('bundle', res)
-        eq_(res['bundle'].sha1, bd.sha1)
-        request.matchdict['sha1'] = 'abc'
-        with self.assertRaises(HTTPNotFound):
-            bundle(request)
 
 
 class TestAdmin(BaseTest):

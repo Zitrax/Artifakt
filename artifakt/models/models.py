@@ -23,6 +23,7 @@ from sqlalchemy import (
     UnicodeText,
     Enum
 )
+from sqlalchemy.engine import Engine
 from sqlalchemy.orm import (
     relationship)
 from sqlalchemy.orm.session import object_session
@@ -294,6 +295,7 @@ schemas['comment'] = CommentSchema()
 
 # Would be nice if these could be inside the object instead ...
 
+# noinspection PyUnusedLocal
 @event.listens_for(Artifakt, 'after_delete')
 def artifakt_after_delete(mapper, connection, target):
     """Register a delete on the target
@@ -305,9 +307,6 @@ def artifakt_after_delete(mapper, connection, target):
         setattr(session, 'deletes', [target])
     else:
         getattr(session, 'deletes').append(target)
-
-
-# noinspection PyUnusedLocal
 
 
 @event.listens_for(DBSession, 'after_rollback')
@@ -326,6 +325,17 @@ def artifakt_after_commit(session):
             # noinspection PyProtectedMember
             obj._delete()
         deletes.clear()
+
+
+# noinspection PyUnusedLocal
+@event.listens_for(Engine, "connect")
+def _set_sqlite_pragma(dbapi_connection, connection_record):
+    """This ensures that SQLite enforce the use of foreign keys"""
+    from sqlite3 import Connection as SQLite3Connection
+    if isinstance(dbapi_connection, SQLite3Connection):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON;")
+        cursor.close()
 
 # FIXME: Needed ?
 # Index('my_index', Artifakt.name, unique=True, mysql_length=255)

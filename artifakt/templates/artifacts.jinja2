@@ -17,7 +17,7 @@
         {% for artifact in artifacts %}
             <tr>
                 {% if artifact.is_bundle %}
-                    <td><a href="/bundle/{{ artifact.sha1 }}">
+                    <td><a href="/artifact/{{ artifact.sha1 }}">
                         <span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span>
                         {{ artifact.filename if artifact.filename else '' }}</a></td>
                 {% elif artifact.bundle_id %}

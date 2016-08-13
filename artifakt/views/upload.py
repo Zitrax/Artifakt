@@ -104,8 +104,6 @@ def upload_post(request):
                 vcs = objects['vcs']
                 vcs.repository = repo
                 af.vcs = vcs
-            if bundle:
-                af.bundle = bundle
 
             DBSession.add(af)
             artifacts.append(af)
@@ -118,6 +116,8 @@ def upload_post(request):
     # Calculate bundle sha1
     if bundle:
         bundle.sha1 = format(sum(int(a.sha1, 16) for a in artifacts) % int('f' * 40, 16), 'x')
+        for a in artifacts:
+            a.bundle = bundle
         DBSession.flush()
 
     return {"artifacts": [a.sha1 for a in artifacts]}
