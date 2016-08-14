@@ -5,7 +5,7 @@ from datetime import datetime
 
 from artifakt import DBSession
 from artifakt.models.models import Artifakt, schemas, Delivery
-from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest, HTTPConflict
+from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest, HTTPConflict, HTTPFound
 from pyramid.response import Response, FileResponse
 from pyramid.view import view_config
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
@@ -38,12 +38,22 @@ def get_artifact(request):
 
 @view_config(route_name='artifact', renderer='artifakt:templates/artifact.jinja2')
 def artifact(request):
-    return {'artifact': get_artifact(request)}
+    af = get_artifact(request)
+    if len(request.matchdict['sha1']) != 40:
+        raise HTTPFound(location='/artifact/' + af.sha1)
+    return {'artifact': af}
 
 
 @view_config(route_name='artifact_json', renderer='json')
 def artifact_json(request):
     return schemas['artifakt'].dump(get_artifact(request)).data
+
+
+# @view_config(route_name='artifact_edit', request_method='POST')
+# def artifact_edit(request):
+#     af = get_artifact(request)
+#     for attr in request.metadata:
+#         print(attr)
 
 
 @view_config(route_name='artifact_delete')

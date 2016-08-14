@@ -37,7 +37,7 @@ $(function () {
             else
                 window.location.href = "/artifacts";
         }).fail(function (jqXHR, textStatus, errorThrown) {
-            alert("Error uploading file: " + errorThrown);
+            alert("Error uploading file (" + errorThrown + "): " + jqXHR.responseJSON.error);
             $('.progress').addClass('hidden');
         });
     });

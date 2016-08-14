@@ -91,16 +91,16 @@ class TestMyViewSuccessCondition(BaseTest):
         super(TestMyViewSuccessCondition, self).setUp()
         with transaction.manager:
             # noinspection PyArgumentList
-            model = Artifakt(filename='one', sha1='deadbeef')
+            model = Artifakt(filename='one', sha1='deadbeef' * 5)
             DBSession.add(model)
 
     def test_passing_view(self):
         from artifakt.views.artifacts import artifact
         request = testing.DummyRequest()
-        request.matchdict['sha1'] = 'deadbeef'
+        request.matchdict['sha1'] = 'deadbeef' * 5
         info = artifact(request)
         self.assertEqual(info['artifact'].filename, 'one')
-        self.assertEqual(info['artifact'].sha1, 'deadbeef')
+        self.assertEqual(info['artifact'].sha1, 'deadbeef' * 5)
 
 
 class TestMyViewFailureCondition(BaseTest):
@@ -137,7 +137,7 @@ class TestArtifact(BaseTest):
         request = self.upload_request({'file.foo': b'foo'})
         response = upload_post(request)
         assert_in('error', response)
-        eq_('Artifact with sha1 {} already exists'.format(sha1), response['error'])
+        eq_('Artifact file.foo with sha1 {} already exists'.format(sha1), response['error'])
         eq_(409, request.response.status_code)
 
     def test_upload_with_metadata(self):

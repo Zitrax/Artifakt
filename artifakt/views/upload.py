@@ -67,7 +67,8 @@ def upload_post(request):
 
             if DBSession.query(Artifakt).filter(Artifakt.sha1 == sha1).count() > 0:
                 request.response.status = 409  # Conflict
-                return {'error': "Artifact with sha1 {} already exists".format(sha1)}
+                return {'error': "Artifact {} with sha1 {} already exists"
+                        .format(os.path.basename(item.filename), sha1)}
 
             storage = request.registry.settings['artifakt.storage']
 
@@ -79,7 +80,7 @@ def upload_post(request):
 
             if os.path.exists(blob):
                 request.response.status = 409  # Conflict
-                return {'error': "File with sha1 {} already exists".format(sha1)}
+                return {'error': "File {} with sha1 {} already exists".format(os.path.basename(blob), sha1)}
 
             item.file.seek(0)
             with open(blob, 'wb') as blob_file:
