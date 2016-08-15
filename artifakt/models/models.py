@@ -269,9 +269,9 @@ class Comment(Base):
     user_id = Column(Integer, ForeignKey('users.id'))
     parent_id = Column(Integer, ForeignKey('comment.id'), nullable=True)
 
-    artifakt = relationship('Artifakt', backref='comments')
+    artifakt = relationship('Artifakt', backref=backref('comments', cascade="all, delete-orphan"))
     user = relationship('User')
-    parent = relationship('Comment', backref='replies', remote_side='Comment.id')
+    parent = relationship('Comment', backref=backref('replies', cascade="all, delete-orphan"), remote_side='Comment.id')
 
     @property
     def age(self):

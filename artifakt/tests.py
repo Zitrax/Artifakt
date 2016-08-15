@@ -7,7 +7,7 @@ from tempfile import TemporaryDirectory
 
 import transaction
 from artifakt.models import models
-from artifakt.models.models import Base, Delivery
+from artifakt.models.models import Base, Delivery, Comment
 from artifakt.models.models import DBSession, Artifakt, Customer
 from artifakt.utils.file import count_files
 from artifakt.utils.time import duration_string
@@ -226,7 +226,7 @@ class TestArtifact(BaseTest):
         eq_(200, response.status_code)
         # TODO: Verify downloaded file
 
-    def test_add_comment(self):
+    def add_comment(self):
         af = self.simple_upload()
         request = self.generic_request()
         json_comment = {'comment': 'test',
@@ -242,6 +242,27 @@ class TestArtifact(BaseTest):
         DBSession.refresh(af)  # Or initial data is cached
         eq_(af.comments[1].comment, 'test2')
         eq_(len(af.root_comments), 1)
+        return af
+
+    def test_add_comment_artifact_cascade(self):
+        af = self.add_comment()
+        # And make sure the comment is deleted when the artifact is
+        DBSession.delete(af)
+        eq_([], DBSession.query(Comment).all())
+
+    def test_add_comment_user_cascade(self):
+        af = self.add_comment()
+        # And make sure the comment is deleted when the artifact is
+        DBSession.delete(af.comments[0].user)
+        eq_([], DBSession.query(Comment).all())
+
+    def test_add_comment_parent_cascade(self):
+        af = self.add_comment()
+        # And make sure the comment is deleted when the parent comment is
+        # noinspection PyComparisonWithNone
+        parent = DBSession.query(Comment).filter(Comment.replies != None).one()
+        DBSession.delete(parent)
+        eq_([], DBSession.query(Comment).all())
 
     def add_delivery(self):
         # Can't add delivery without a customer
