@@ -7,7 +7,7 @@ from tempfile import TemporaryDirectory
 
 import transaction
 from artifakt.models import models
-from artifakt.models.models import Base
+from artifakt.models.models import Base, Delivery
 from artifakt.models.models import DBSession, Artifakt, Customer
 from artifakt.utils.file import count_files
 from artifakt.utils.time import duration_string
@@ -243,7 +243,7 @@ class TestArtifact(BaseTest):
         eq_(af.comments[1].comment, 'test2')
         eq_(len(af.root_comments), 1)
 
-    def test_add_delivery(self):
+    def add_delivery(self):
         # Can't add delivery without a customer
         customer = Customer(name='Blargh')
         DBSession.add(customer)
@@ -261,13 +261,36 @@ class TestArtifact(BaseTest):
         eq_(delivery.comment, 'åäö')
         eq_(delivery.to.name, customer.name)
         eq_(delivery.by.username, 'test')
+        return af, delivery
 
+    def test_add_delivery(self):
+        af, delivery = self.add_delivery()
         # And delete it
         request = self.generic_request()
         request.matchdict['id'] = delivery.id
         eq_(200, artifact_delivery_delete(request).status_code)
         DBSession.refresh(af)
         eq_(0, len(af.deliveries))
+
+    def test_add_delivery_artifakt_cascade(self):
+        af, delivery = self.add_delivery()
+        # Delete the artifact and make sure the delivery is deleted too
+        DBSession.delete(af)
+        eq_([], DBSession.query(Delivery).all())
+
+    def test_add_delivery_customer_cascade(self):
+        af, delivery = self.add_delivery()
+        # Delete the customer and make sure the delivery is deleted too
+        DBSession.delete(delivery.to)
+        eq_([], DBSession.query(Delivery).all())
+
+    def test_add_delivery_user_cascade(self):
+        af, delivery = self.add_delivery()
+        # Delete the user and make sure the delivery is deleted too
+        DBSession.delete(delivery.by)
+        eq_([], DBSession.query(Delivery).all())
+        # Deleting the user would nuke the artifact too
+        eq_([], DBSession.query(Artifakt).all())
 
     def test_archive_view(self):
         this_dir = os.path.dirname(os.path.realpath(__file__))

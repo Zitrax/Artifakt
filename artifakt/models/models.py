@@ -25,7 +25,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import (
-    relationship)
+    relationship, backref)
 from sqlalchemy.orm.session import object_session
 from sqlalchemy.sql import func
 
@@ -142,8 +142,8 @@ class Delivery(Base):
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     time = Column(DateTime, default=func.now())
 
-    to = relationship("Customer", backref='deliveries')
-    by = relationship("User")
+    to = relationship("Customer", backref=backref('deliveries', cascade="all, delete-orphan"))
+    by = relationship("User", backref=backref('deliveries', cascade="all, delete-orphan"))
 
 
 class DeliverySchema(BaseSchema):
@@ -175,8 +175,8 @@ class Artifakt(Base):
 
     vcs = relationship("Vcs")
     bundle = relationship("Artifakt", backref='artifacts', remote_side='Artifakt.sha1')
-    uploader = relationship("User")
-    deliveries = relationship(Delivery, backref='artifakt')
+    uploader = relationship("User", backref=backref('artifacts', cascade="all, delete-orphan"))
+    deliveries = relationship(Delivery, backref='artifakt', cascade="all, delete-orphan")
 
     @property
     def name(self):
