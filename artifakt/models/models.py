@@ -174,7 +174,8 @@ class Artifakt(Base):
     is_bundle = Column(Boolean, default=False)
 
     vcs = relationship("Vcs")
-    bundle = relationship("Artifakt", backref='artifacts', remote_side='Artifakt.sha1')
+    bundle = relationship("Artifakt", backref=backref('artifacts', cascade="all, delete-orphan"),
+                          remote_side='Artifakt.sha1')
     uploader = relationship("User", backref=backref('artifacts', cascade="all, delete-orphan"))
     deliveries = relationship(Delivery, backref='artifakt', cascade="all, delete-orphan")
 
