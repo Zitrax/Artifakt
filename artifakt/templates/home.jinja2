@@ -42,7 +42,7 @@
                 {% else %}
                     <td><a href="/artifact/{{ artifact.sha1 }}">{{ artifact.name }}</a></td>
                 {% endif %}
-                <td>{{ artifact.age }}</td>
+                <td><span title="{{ artifact.created }}">{{ artifact.age }}</span></td>
                 <td>{{ artifact.uploader }}</td>
                 <td>{{ artifact.comment if artifact.comment else '' }}</td>
             </tr>

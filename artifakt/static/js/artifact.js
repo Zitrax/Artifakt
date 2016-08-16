@@ -123,6 +123,8 @@ $(function () {
     });
 
     function add_comment(comment, parent_id, target, input) {
+        if (comment.length == 0)
+            return;
         var sha1 = window.location.pathname.split('/').pop();
         $.ajax({
             url: window.location.pathname + '/comment',
@@ -163,12 +165,18 @@ $(function () {
         }
     });
 
+    $('#new_comment_button').click(function () {
+        var $new_comment = $('#new_comment');
+        add_comment($new_comment.val(), null, $('#comments'), $new_comment);
+    });
+
     $("span.comment_reply a").click(function () {
         // First remove any existing reply box
         $('.reply_list').remove();
         // Add new
         var $reply = $('<ul class="reply_list"><li>' +
             '<input data-reply-id="' + $(this).data("comment-id") + '" class="input-sm" type="text" placeholder="Reply">' +
+            '&nbsp;<button class="btn btn-sm btn-default" type="submit">Add reply</button>' +
             '</li></ul>');
         var $target = $(this).parent().parent();
         $reply.appendTo($target);
@@ -176,6 +184,10 @@ $(function () {
             if (e.which == 13) {
                 add_comment($(this).val(), $(this).data("reply-id"), $target, $(this));
             }
+        });
+        $reply.find('button').click(function (e) {
+            var $reply_input = $reply.find('input');
+            add_comment($reply_input.val(), $reply_input.data("reply-id"), $target, $reply_input);
         });
     });
 });

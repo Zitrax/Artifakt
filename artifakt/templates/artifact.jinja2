@@ -195,6 +195,7 @@
 
         <div class="panel-body">
             <input style="margin: 0 0 0 20px;" id="new_comment" class="input-sm" type="text" placeholder="New comment">
+            <button id="new_comment_button" class="btn btn-sm btn-default" type="submit">Add comment</button>
             <hr>
             <ul id="comments">
                 {% for comment in artifact.root_comments recursive %}
