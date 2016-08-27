@@ -4,8 +4,8 @@ import zipfile
 from datetime import datetime
 
 from artifakt import DBSession
-from artifakt.models.models import Artifakt, schemas, Delivery
-from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest, HTTPConflict, HTTPFound
+from artifakt.models.models import Artifakt, schemas, Delivery, Comment
+from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest, HTTPConflict, HTTPFound, HTTPForbidden
 from pyramid.response import Response, FileResponse
 from pyramid.view import view_config
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
@@ -117,6 +117,15 @@ def artifact_comment_add(request):
     DBSession.add(comment)
     DBSession.flush()
     return schemas['comment'].dump(comment).data
+
+
+@view_config(route_name='artifact_comment_delete', request_method="POST")
+def artifact_comment_delete(request):
+    comment = DBSession.query(Comment).filter(Comment.id == request.matchdict['id']).one()
+    if request.user.id != comment.user_id:
+        raise HTTPForbidden("Not your comment")
+    comment.delete()
+    return Response()
 
 
 @view_config(route_name='artifact_delivery_add', request_method="POST", renderer="json")

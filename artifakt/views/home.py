@@ -10,4 +10,4 @@ def artifact(_):
     return {'artifacts': DBSession.query(Artifakt)
                                   .filter(or_(Artifakt.is_bundle, Artifakt.bundle_id == None))
                                   .order_by(Artifakt.created.desc()).limit(5),
-            'comments': DBSession.query(Comment).order_by(Comment.time.desc()).limit(5)}
+            'comments': DBSession.query(Comment).filter(~Comment.deleted).order_by(Comment.time.desc()).limit(5)}

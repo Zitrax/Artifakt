@@ -188,6 +188,11 @@
             will be permanently removed. Are you sure?</p>
     </div>
 
+    <div style="display: None;" id="delete_comment_confirm" title="Delete comment?">
+        <p><span class="ui-icon ui-icon-alert" style="float:left; margin:12px 12px 20px 0;"></span>The comment:<br>
+            <b><span id="comment_delete_text">ERROR</span></b><br> will be permanently removed. Are you sure?</p>
+    </div>
+
     <div class="panel panel-success">
         <div class="panel-heading">
             <h3 class="panel-title">Comments</h3>
@@ -201,9 +206,15 @@
                 {% for comment in artifact.root_comments recursive %}
                     <li>
                         <span class="comment">{{ comment.comment }}</span>&nbsp;&mdash;&nbsp;
-                        <span class="comment_by">{{ comment.user }}</span>
+                        <span class="comment_by">{{ "" if comment.deleted else comment.user }}</span>
                         <span class="comment_age" title="{{ comment.time }}">{{ comment.age }} ago</span>&nbsp;
-                        <span class="comment_reply"><a data-comment-id="{{ comment.id }}">Reply</a></span>
+                        {% if not comment.deleted %}
+                            <span class="comment_reply"><a data-comment-id="{{ comment.id }}">Reply</a></span>
+                            {% if comment.user.id == request.user.id %}
+                                <span data-id="{{ comment.id }}" class="delete_comment glyphicon glyphicon-trash"
+                                      aria-hidden="true"></span>
+                            {% endif %}
+                        {% endif %}
                         {% if comment.replies %}
                             <ul>{{ loop(comment.replies) }}</ul>
                         {% endif %}

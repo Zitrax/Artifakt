@@ -269,6 +269,7 @@ class Comment(Base):
     time = Column(DateTime, default=func.now())
     user_id = Column(Integer, ForeignKey('users.id'))
     parent_id = Column(Integer, ForeignKey('comment.id'), nullable=True)
+    deleted = Column(Boolean, default=False, nullable=False)
 
     artifakt = relationship('Artifakt', backref=backref('comments', cascade="all, delete-orphan"))
     user = relationship('User')
@@ -277,6 +278,15 @@ class Comment(Base):
     @property
     def age(self):
         return duration_string((datetime.utcnow() - self.time).total_seconds())
+
+    def delete(self):
+        # If the comment has replies it will only marked as deleted
+        if len(self.replies):
+            self.comment = "<DELETED>"
+            self.deleted = True
+        # If note it will fully deleted
+        else:
+            DBSession.delete(self)
 
 
 class CommentSchema(BaseSchema):

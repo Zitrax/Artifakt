@@ -98,6 +98,34 @@ $(function () {
 
     $('#delivery_time').val(new Date().toDateInputValue());
 
+    $(document).on('click', 'span.delete_comment', function () {
+        $('#comment_delete_text').text($(this).siblings('.comment').text());
+        var span_delete = $(this);
+        $("#delete_comment_confirm").dialog({
+            width: 400,
+            modal: true,
+            buttons: {
+                "Delete comment": function () {
+                    $(this).dialog("close");
+                    $.post(window.location.pathname + '/comment_delete/' + span_delete.data('id'), function () {
+                        var li = span_delete.closest('li');
+                        if (li.has("ul").length) {
+                            li.find('> span.comment').fadeOut(function() { $(this).text('<DELETED>').fadeIn(); });
+                        }
+                        else {
+                            li.fadeOut(400, function () {
+                                $(this).remove();
+                            });
+                        }
+                    });
+                },
+                Cancel: function () {
+                    $(this).dialog("close");
+                }
+            }
+        });
+    });
+
     $(document).on('click', 'span.delete_delivery', function () {
         $('#delivery_delete_name').text($(this).data('name'));
         $('#delivery_delete_time').text(new Date($(this).data('time') + ' UTC').toLocaleString());
