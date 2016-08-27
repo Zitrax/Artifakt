@@ -79,7 +79,7 @@ def artifact_download(request, inline):
     file_name = af.filename
     mime, encoding = mimetypes.guess_type(file_name)
     if mime is None:
-        mime = 'application/octet-stream'
+        mime = ('text/plain' if inline else 'application/octet-stream')
     # If the current simple approach proves to be a problem the discussion
     # at http://stackoverflow.com/q/93551/11722 can be considered.
     response = FileResponse(disk_name, request=request, content_type=mime)
