@@ -177,10 +177,10 @@ class TestArtifact(BaseTest):
         eq_(0, count_files(self.tmp_dir.name))
         eq_(0, DBSession.query(Artifakt).count())
 
-    def upload_bundle(self, files):
+    def upload_bundle(self, files, expected_status=200):
         request = self.upload_request(files)
         upload_post(request)
-        eq_(200, request.response.status_code)
+        eq_(expected_status, request.response.status_code)
 
     def test_upload_bundle(self):
         self.upload_bundle({'file.foo': b'foo', 'file.bar': b'bar'})
@@ -200,6 +200,14 @@ class TestArtifact(BaseTest):
         eq_(files[2].bundle_id, files[3].bundle_id)
         eq_(files[4].bundle_id, files[5].bundle_id)
         assert_true(all(a.uploader.username == 'test' for a in files))
+
+    def test_upload_bundle_fail(self):
+        self.upload_bundle({'aa': b'aa', 'bb': b'bb'})
+        # This bundle will fail since bb already exists - should not leave cc on the server
+        self.upload_bundle({'cc': b'cc', 'bb': b'bb', 'dd': b'dd'}, expected_status=409)
+        files = DBSession.query(Artifakt).filter(~Artifakt.is_bundle).all()
+        self.assertCountEqual([f.filename for f in files], ['aa', 'bb'])
+        DBSession.query(Artifakt).filter(Artifakt.is_bundle).one()
 
     def test_upload_bundle_cascading(self):
         self.upload_bundle({'file.foo': b'foo', 'file.bar': b'bar'})

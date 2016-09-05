@@ -21,13 +21,7 @@ def validate_metadata(data):
     return ret
 
 
-@view_config(route_name='upload', renderer='json', request_method='POST')
-def upload_post(request):
-    # TODO: Handle known exceptions better instead of default 500
-    # TODO: Allow multiple files ? ( it gets complicated with http status )
-    # TODO: Check performance and memory usage. Might need to read and write in chunks
-    artifacts = []
-
+def _upload_post(request, artifacts):
     for field in ['file', 'metadata']:
         if field not in request.POST:
             request.response.status = 400
@@ -122,6 +116,30 @@ def upload_post(request):
         DBSession.flush()
 
     return {"artifacts": [a.sha1 for a in artifacts]}
+
+
+@view_config(route_name='upload', renderer='json', request_method='POST')
+def upload_post(request):
+    # TODO: Handle known exceptions better instead of default 500
+    # TODO: Allow multiple files ? ( it gets complicated with http status )
+    # TODO: Check performance and memory usage. Might need to read and write in chunks
+    artifacts = []
+
+    def cleanup():
+        """If a bundle was partially uploaded - delete the remains"""
+        if request.response.status_int != 200 and len(artifacts):
+            for af in artifacts:
+                DBSession.delete(af)
+            DBSession.flush()
+
+    try:
+        res = _upload_post(request, artifacts)
+        if request.response.status_int != 200:
+            cleanup()
+        return res
+    except Exception:
+        cleanup()
+        raise
 
 
 @view_config(route_name='upload', renderer='artifakt:templates/upload_form.jinja2', request_method="GET")
