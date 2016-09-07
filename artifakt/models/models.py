@@ -23,6 +23,7 @@ from sqlalchemy import (
     UnicodeText,
     Enum
 )
+from sqlalchemy import Table
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import (
     relationship, backref)
@@ -157,6 +158,13 @@ class DeliverySchema(BaseSchema):
 schemas['delivery'] = DeliverySchema()
 
 
+# Link table telling which artifacts belong to which bundles
+bundle_link_table = \
+    Table('bundle_link', Base.metadata,
+          Column('artifact_sha1', CHAR(length=40), ForeignKey('artifakt.sha1'), primary_key=True),
+          Column('bundle_sha1', CHAR(length=40), ForeignKey('artifakt.sha1'), primary_key=True))
+
+
 class Artifakt(Base):
     """One artifact is one or several files.
 
@@ -170,12 +178,13 @@ class Artifakt(Base):
     created = Column(DateTime, default=func.now())
     uploaded_by = Column(Integer, ForeignKey('users.id'))
     vcs_id = Column(Integer, ForeignKey('vcs.id'))
-    bundle_id = Column(Integer, ForeignKey('artifakt.sha1'))
     is_bundle = Column(Boolean, default=False)
+    keep_alive = Column(Boolean, default=True)
 
     vcs = relationship("Vcs")
-    bundle = relationship("Artifakt", backref=backref('artifacts', cascade="all, delete-orphan"),
-                          remote_side='Artifakt.sha1')
+    bundles = relationship("Artifakt", secondary=bundle_link_table, backref='artifacts',
+                           primaryjoin=bundle_link_table.c.artifact_sha1 == sha1,
+                           secondaryjoin=bundle_link_table.c.bundle_sha1 == sha1)
     uploader = relationship("User", backref=backref('artifacts', cascade="all, delete-orphan"))
     deliveries = relationship(Delivery, backref='artifakt', cascade="all, delete-orphan")
 
@@ -318,6 +327,18 @@ def artifakt_after_delete(mapper, connection, target):
         setattr(session, 'deletes', [target])
     else:
         getattr(session, 'deletes').append(target)
+
+
+@event.listens_for(DBSession, 'before_flush')
+def artifakt_before_flush(session, *_):
+    """When deleting a bundle certain contained artifacts should also be deleted"""
+    for obj in session.deleted:
+        if type(obj) is Artifakt and obj.is_bundle:
+            for af in obj.artifacts:
+                if not set(af.bundles) - {obj}:  # If the artifact would not be in a bundle anymore
+                    if not af.keep_alive:
+                        print("Deleting: " + af.filename)
+                        DBSession.delete(af)
 
 
 @event.listens_for(DBSession, 'after_rollback')

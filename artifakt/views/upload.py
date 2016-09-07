@@ -59,10 +59,19 @@ def _upload_post(request, artifacts):
             sha1_hash.update(content)
             sha1 = sha1_hash.hexdigest()
 
-            if DBSession.query(Artifakt).filter(Artifakt.sha1 == sha1).count() > 0:
-                request.response.status = 409  # Conflict
-                return {'error': "Artifact {} with sha1 {} already exists"
-                        .format(os.path.basename(item.filename), sha1)}
+            existing = DBSession.query(Artifakt).filter(Artifakt.sha1 == sha1).one_or_none()
+            if existing is not None:
+                # This is fine if part of a bundle - in that case we can just continue
+                if bundle:
+                    pass
+                # If not part of a bundle - we should make sure to flag as keep_alive
+                else:
+                    request.response.status = 302  # Since metadata will not be used we need to tell user
+                    print("Flagging: " + existing.filename)
+                    existing.keep_alive = True
+
+                artifacts.append(existing)
+                continue
 
             storage = request.registry.settings['artifakt.storage']
 
@@ -86,6 +95,7 @@ def _upload_post(request, artifacts):
             metadata['artifakt']['filename'] = item.filename
             metadata['artifakt']['sha1'] = sha1
             metadata['artifakt']['uploader'] = request.user
+            metadata['artifakt']['keep_alive'] = bundle is None
 
             # Will validate and create objects
             objects = validate_metadata(metadata)
@@ -112,7 +122,7 @@ def _upload_post(request, artifacts):
     if bundle:
         bundle.sha1 = format(sum(int(a.sha1, 16) for a in artifacts) % int('f' * 40, 16), 'x')
         for a in artifacts:
-            a.bundle = bundle
+            a.bundles.append(bundle)
         DBSession.flush()
 
     return {"artifacts": [a.sha1 for a in artifacts]}
@@ -127,7 +137,7 @@ def upload_post(request):
 
     def cleanup():
         """If a bundle was partially uploaded - delete the remains"""
-        if request.response.status_int != 200 and len(artifacts):
+        if request.response.status_int not in (200, 302) and len(artifacts):
             for af in artifacts:
                 DBSession.delete(af)
             DBSession.flush()
