@@ -59,7 +59,12 @@ def artifact_json(request):
 @view_config(route_name='artifact_delete')
 def artifact_delete(request):
     af = get_artifact(request)
+    if not af.is_bundle:
+        if af.bundles:
+            raise HTTPForbidden("This artifact can not be deleted. It belongs to a bundle.")
+
     DBSession.delete(af)
+
     return Response(status_int=302, location="/artifacts")
 
 

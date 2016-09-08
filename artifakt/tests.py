@@ -20,6 +20,7 @@ from artifakt.views.upload import upload_post
 from nose.tools import assert_in, assert_true, assert_raises, assert_is_not_none, \
     assert_false, assert_is_none, assert_greater, assert_list_equal
 from pyramid import testing
+from pyramid.httpexceptions import HTTPForbidden
 from pyramid_fullauth.models import User
 from sqlalchemy import desc
 from sqlalchemy.exc import OperationalError, IntegrityError
@@ -88,6 +89,11 @@ class BaseTest(unittest.TestCase):
         res = upload_post(request)
         eq_(expected_status, request.response.status_code)
         return DBSession.query(Artifakt).filter(Artifakt.sha1 == res['artifacts'][0]).one()
+
+    def delete_artifact(self, af):
+        request = self.generic_request()
+        request.matchdict.update({'sha1': af.sha1})
+        artifact_delete(request)
 
 
 class TestMyViewSuccessCondition(BaseTest):
@@ -248,14 +254,52 @@ class TestArtifact(BaseTest):
         file_path = af.file
         assert_true(os.path.exists(file_path))
         # Now delete and verify that both file and artifact are deleted
-        request = self.generic_request()
-        request.matchdict.update({'sha1': af.sha1})
-        artifact_delete(request)
+        self.delete_artifact(af)
         # FIXME: Investigate this: http://stackoverflow.com/a/23176618/11722
         transaction.commit()  # TODO: Better way to test this ? We must commit for the file to go away.
         assert_false(os.path.exists(file_path))
         assert_false(os.path.exists(os.path.dirname(file_path)))
         assert_is_none(DBSession.query(Artifakt).one_or_none())
+
+    def test_delete_bundle_file(self):
+        self.upload_bundle({'foo': b'foo', 'bar': b'bar'})
+        af = DBSession.query(Artifakt).filter(Artifakt.filename == 'foo').one()
+        assert_raises(HTTPForbidden, self.delete_artifact, af)
+        # The file belong to a bundle and should thus not be deleted
+        DBSession.query(Artifakt).filter(Artifakt.filename == 'foo').one()
+        # Delete the bundle - it should make the file go away.
+        bundle = DBSession.query(Artifakt).filter(Artifakt.is_bundle).one()
+        self.delete_artifact(bundle)
+        transaction.commit()
+        assert_is_none(DBSession.query(Artifakt).filter(Artifakt.filename == 'foo').one_or_none())
+
+    def test_delete_bundle_file_loner(self):
+        # Upload a lone file and then the same file in a bundle. Such a file should stay.
+        self.simple_upload({'foo': b'foo'})
+        self.upload_bundle({'foo': b'foo', 'bar': b'bar'})
+        af = DBSession.query(Artifakt).filter(Artifakt.filename == 'foo').one()
+        assert_raises(HTTPForbidden, self.delete_artifact, af)
+        # The file belong to a bundle and should thus not be deleted
+        DBSession.query(Artifakt).filter(Artifakt.filename == 'foo').one()
+        # Delete the bundle - it should not make the file go away.
+        bundle = DBSession.query(Artifakt).filter(Artifakt.is_bundle).one()
+        self.delete_artifact(bundle)
+        transaction.commit()
+        DBSession.query(Artifakt).filter(Artifakt.filename == 'foo').one()
+
+    def test_delete_bundle_file_loner_reverse(self):
+        # Upload a lone file and then the same file in a bundle. Such a file should stay.
+        self.upload_bundle({'foo': b'foo', 'bar': b'bar'})
+        self.simple_upload({'foo': b'foo'}, expected_status=302)
+        af = DBSession.query(Artifakt).filter(Artifakt.filename == 'foo').one()
+        assert_raises(HTTPForbidden, self.delete_artifact, af)
+        # The file belong to a bundle and should thus not be deleted
+        DBSession.query(Artifakt).filter(Artifakt.filename == 'foo').one()
+        # Delete the bundle - it should not make the file go away.
+        bundle = DBSession.query(Artifakt).filter(Artifakt.is_bundle).one()
+        self.delete_artifact(bundle)
+        transaction.commit()
+        DBSession.query(Artifakt).filter(Artifakt.filename == 'foo').one()
 
     def test_download(self):
         af = self.simple_upload()

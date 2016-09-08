@@ -333,11 +333,15 @@ def artifakt_after_delete(mapper, connection, target):
 def artifakt_before_flush(session, *_):
     """When deleting a bundle certain contained artifacts should also be deleted"""
     for obj in session.deleted:
-        if type(obj) is Artifakt and obj.is_bundle:
-            for af in obj.artifacts:
-                if not set(af.bundles) - {obj}:  # If the artifact would not be in a bundle anymore
-                    if not af.keep_alive:
-                        DBSession.delete(af)
+        if type(obj) is Artifakt:
+            if obj.is_bundle:
+                for af in obj.artifacts:
+                    if not set(af.bundles) - {obj}:  # If the artifact would not be in a bundle anymore
+                        if not af.keep_alive:
+                            DBSession.delete(af)
+            else:  # Safety checks. We try to prevent reaching this in the views.
+                if obj.bundles:
+                    raise ValueError("Won't delete {} (belongs to bundle)".format(obj.sha1))
 
 
 @event.listens_for(DBSession, 'after_rollback')
