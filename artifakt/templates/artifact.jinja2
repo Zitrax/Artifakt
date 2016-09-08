@@ -77,10 +77,13 @@
                     <th>Mime type</th>
                     <td>{{ artifact.mime or "Unknown" }}</td>
                 </tr>
-                {% if artifact.bundle %}
+                {% if artifact.bundles %}
                     <tr>
-                        <th>Bundle</th>
-                        <td><code><a href="/artifact/{{ artifact.bundle.sha1 }}">{{ artifact.bundle.name }}</a></code>
+                        <th>Bundles</th>
+                        <td>
+                            {% for bundle in artifact.bundles %}
+                                <code><a href="/artifact/{{ bundle.sha1 }}">{{ bundle.name }}</a></code>
+                            {% endfor %}
                         </td>
                     </tr>
                 {% endif %}
