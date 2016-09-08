@@ -67,7 +67,6 @@ def _upload_post(request, artifacts):
                 # If not part of a bundle - we should make sure to flag as keep_alive
                 else:
                     request.response.status = 302  # Since metadata will not be used we need to tell user
-                    print("Flagging: " + existing.filename)
                     existing.keep_alive = True
 
                 artifacts.append(existing)

@@ -337,7 +337,6 @@ def artifakt_before_flush(session, *_):
             for af in obj.artifacts:
                 if not set(af.bundles) - {obj}:  # If the artifact would not be in a bundle anymore
                     if not af.keep_alive:
-                        print("Deleting: " + af.filename)
                         DBSession.delete(af)
 
 
