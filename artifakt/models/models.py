@@ -208,7 +208,10 @@ class Artifakt(Base):
     def size(self):
         # TODO: Possibly it's better to store this in the db - since size should not change anyway
         try:
-            return os.path.getsize(self.file)
+            if self.is_bundle:
+                return sum(a.size for a in self.artifacts)
+            else:
+                return os.path.getsize(self.file)
         except FileNotFoundError:
             return 0
 

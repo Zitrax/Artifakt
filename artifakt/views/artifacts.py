@@ -41,7 +41,7 @@ def artifact(request):
     af = get_artifact(request)
     if len(request.matchdict['sha1']) != 40:
         raise HTTPFound(location='/artifact/' + af.sha1)
-    return {'artifact': af}
+    return {'artifact': af, 'total_size': sum(a.size for a in af.artifacts)}
 
 
 @view_config(route_name='artifact_json', renderer='json')

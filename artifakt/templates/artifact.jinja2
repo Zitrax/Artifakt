@@ -39,6 +39,7 @@
                     <th>SHA1</th>
                     <th>Created</th>
                     <th>Comment</th>
+                    <th>Size</th>
                 </tr>
                 {% for artifact in artifact.artifacts %}
                     <tr>
@@ -46,8 +47,10 @@
                         <td><code>{{ artifact.sha1 }}</code></td>
                         <td>{{ artifact.created }}</td>
                         <td>{{ artifact.comment if artifact.comment else '' }}</td>
+                        <td>{{ artifact.size }}</td>
                     </tr>
                 {% endfor %}
+                <tr><th colspan="4">Total size</th><th>{{ artifact.size_h }}</th></tr>
             </table>
         {% else %}
             <table class="table table-striped table-hover">
