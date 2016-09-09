@@ -3,7 +3,7 @@ import json
 import os
 import shutil
 
-from artifakt.models.models import Artifakt, DBSession, schemas
+from artifakt.models.models import Artifakt, DBSession, schemas, Repository
 from pyramid.httpexceptions import HTTPBadRequest
 from pyramid.view import view_config
 
@@ -96,6 +96,7 @@ def _upload_post(request, artifacts):
             metadata['artifakt']['uploader'] = request.user
             metadata['artifakt']['keep_alive'] = bundle is None
 
+            prepare_repo(metadata)
             # Will validate and create objects
             objects = validate_metadata(metadata)
 
@@ -109,7 +110,6 @@ def _upload_post(request, artifacts):
                 vcs.repository = repo
                 af.vcs = vcs
 
-            DBSession.add(af)
             artifacts.append(af)
             DBSession.flush()
         except Exception:
@@ -127,6 +127,15 @@ def _upload_post(request, artifacts):
     return {"artifacts": [a.sha1 for a in artifacts]}
 
 
+def prepare_repo(metadata):
+    """Workaround for repos. Validation uses the primary key - but repos have a unique
+    url so we need to find the primary key if we already have this url to reuse it."""
+    if 'repository' in metadata:
+        repo = DBSession.query(Repository).filter(Repository.url == metadata['repository']['url']).one_or_none()
+        if repo is not None:
+            metadata['repository']['id'] = repo.id
+
+
 @view_config(route_name='upload', renderer='json', request_method='POST')
 def upload_post(request):
     # TODO: Handle known exceptions better instead of default 500
@@ -134,9 +143,13 @@ def upload_post(request):
     # TODO: Check performance and memory usage. Might need to read and write in chunks
     artifacts = []
 
-    def cleanup():
+    def cleanup(exc):
         """If a bundle was partially uploaded - delete the remains"""
-        if request.response.status_int not in (200, 302) and len(artifacts):
+        if exc:
+            for af in artifacts:
+                if os.path.exists(af.file):
+                    os.remove(af.file)
+        elif request.response.status_int not in (200, 302) and len(artifacts):
             for af in artifacts:
                 DBSession.delete(af)
             DBSession.flush()
@@ -144,10 +157,10 @@ def upload_post(request):
     try:
         res = _upload_post(request, artifacts)
         if request.response.status_int != 200:
-            cleanup()
+            cleanup(False)
         return res
     except Exception:
-        cleanup()
+        cleanup(True)
         raise
 
 

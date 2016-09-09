@@ -5,6 +5,7 @@ from cgi import FieldStorage
 from io import BytesIO
 from tempfile import TemporaryDirectory
 from unittest import skip
+from unittest.mock import patch
 
 import transaction
 from artifakt.models import models
@@ -184,8 +185,8 @@ class TestArtifact(BaseTest):
         eq_(0, count_files(self.tmp_dir.name))
         eq_(0, DBSession.query(Artifakt).count())
 
-    def upload_bundle(self, files, expected_status=200):
-        request = self.upload_request(files)
+    def upload_bundle(self, files, expected_status=200, metadata=None):
+        request = self.upload_request(files, metadata=metadata)
         upload_post(request)
         eq_(expected_status, request.response.status_code)
 
@@ -218,6 +219,32 @@ class TestArtifact(BaseTest):
         files = DBSession.query(Artifakt).filter(~Artifakt.is_bundle).all()
         self.assertCountEqual([f.filename for f in files], ['aa', 'bb'])
         DBSession.query(Artifakt).filter(Artifakt.is_bundle).one()
+
+    # Mocking away this function means we will throw IntegrityError
+    @patch('artifakt.views.upload.prepare_repo')
+    def test_bundle_with_vcs_info_fail(self, _):
+        metadata = {'vcs': {'revision': '1'},
+                    'repository': {'url': 'a', 'name': 'b', 'type': 'git'},
+                    'artifakt': {'comment': 'hej'}}
+        assert_raises(IntegrityError, self.upload_bundle, {'foo': b'foo', 'bar': b'bar'}, metadata=json.dumps(metadata))
+        DBSession.rollback()
+        eq_(0, DBSession.query(Artifakt).count())
+        info = verify_fs(None)
+        assert_list_equal([], info['not_on_disk'])
+        assert_list_equal([], info['not_in_db'])
+
+    def test_bundle_with_vcs_info(self):
+        metadata = {'vcs': {'revision': '1'},
+                    'repository': {'url': 'a', 'name': 'b', 'type': 'git'},
+                    'artifakt': {'comment': 'hej'}}
+        self.upload_bundle({'foo': b'foo', 'bar': b'bar'}, metadata=json.dumps(metadata))
+        files = DBSession.query(Artifakt).all()
+        self.assertCountEqual(['hej', 'foo', 'bar'], [f.filename for f in files])
+        files = DBSession.query(Artifakt).filter(~Artifakt.is_bundle).all()
+        self.assertCountEqual(['b', 'b'], [f.vcs.repository.name for f in files])
+        self.assertCountEqual(['a', 'a'], [f.vcs.repository.url for f in files])
+        self.assertCountEqual(['git', 'git'], [f.vcs.repository.type for f in files])
+        self.assertCountEqual(['1', '1'], [f.vcs.revision for f in files])
 
     def test_upload_bundle_cascading(self):
         self.upload_bundle({'file.foo': b'foo', 'file.bar': b'bar'})
