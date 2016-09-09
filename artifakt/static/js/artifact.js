@@ -218,5 +218,10 @@ $(function () {
             add_comment($reply_input.val(), $reply_input.data("reply-id"), $target, $reply_input);
         });
     });
+
+    $('span.comment').each(function (index) {
+        var $new =  $(this).text().replace(/([\da-f]{6,40})/g, "<a href=\"/artifact/$1\">$1</a>");
+        $(this).html($new);
+    })
 });
 

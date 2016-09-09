@@ -19,7 +19,7 @@
                 {% if artifact.is_bundle %}
                     <td><a href="/artifact/{{ artifact.sha1 }}">
                         <span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span>
-                        {{ artifact.filename if artifact.filename else '' }}</a></td>
+                        {{ artifact.name }}</a></td>
                 {% elif artifact.bundles %}
                     <td><a href="/artifact/{{ artifact.sha1 }}">
                         <span class="glyphicon glyphicon-level-up" aria-hidden="true"></span>
