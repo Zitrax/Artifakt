@@ -233,6 +233,25 @@ class TestArtifact(BaseTest):
         assert_list_equal([], info['not_on_disk'])
         assert_list_equal([], info['not_in_db'])
 
+    # Make sure upload does not remove files already in the db on failure
+    def test_bundle_fail_existing_files(self):
+        self.upload_bundle({'aa': b'aa', 'bb': b'bb'})
+        transaction.commit()
+        # User needs to be reused so refetch it. Unsure why DBSession.refresh is not working
+        self.user = DBSession.query(User).filter(User.id == 1).one()
+
+        with patch('artifakt.views.upload.prepare_repo') as repo_mock:
+            repo_mock.side_effect = Exception("Ugh")
+            assert_raises(Exception, self.upload_bundle, {'aa': b'aa', 'bb': b'bb', 'cc': b'cc'})
+            DBSession.rollback()
+
+        eq_(3, DBSession.query(Artifakt).count())
+        files = DBSession.query(Artifakt).all()
+        self.assertCountEqual([f.filename for f in files], [None, 'aa', 'bb'])
+        info = verify_fs(None)
+        assert_list_equal([], info['not_on_disk'])
+        assert_list_equal([], info['not_in_db'])
+
     def test_bundle_with_vcs_info(self):
         metadata = {'vcs': {'revision': '1'},
                     'repository': {'url': 'a', 'name': 'b', 'type': 'git'},

@@ -21,7 +21,7 @@ def validate_metadata(data):
     return ret
 
 
-def _upload_post(request, artifacts):
+def _upload_post(request, artifacts, blobs):
     for field in ['file', 'metadata']:
         if field not in request.POST:
             request.response.status = 400
@@ -79,6 +79,7 @@ def _upload_post(request, artifacts):
                 os.makedirs(_dir)
 
             blob = os.path.join(_dir, sha1[2:])
+            blobs.append(blob)
 
             if os.path.exists(blob):
                 request.response.status = 409  # Conflict
@@ -142,20 +143,21 @@ def upload_post(request):
     # TODO: Allow multiple files ? ( it gets complicated with http status )
     # TODO: Check performance and memory usage. Might need to read and write in chunks
     artifacts = []
+    blobs = []  # New files added in the process
 
     def cleanup(exc):
         """If a bundle was partially uploaded - delete the remains"""
         if exc:
-            for af in artifacts:
-                if os.path.exists(af.file):
-                    os.remove(af.file)
+            for blob in blobs:
+                if os.path.exists(blob):
+                    os.remove(blob)
         elif request.response.status_int not in (200, 302) and len(artifacts):
             for af in artifacts:
                 DBSession.delete(af)
             DBSession.flush()
 
     try:
-        res = _upload_post(request, artifacts)
+        res = _upload_post(request, artifacts, blobs)
         if request.response.status_int != 200:
             cleanup(False)
         return res
