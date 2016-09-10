@@ -121,9 +121,15 @@ def _upload_post(request, artifacts, blobs):
     # Calculate bundle sha1
     if bundle:
         bundle.sha1 = '{:040x}'.format(sum(int(a.sha1, 16) for a in artifacts) % int('f' * 40, 16))
-        for a in artifacts:
-            a.bundles.append(bundle)
-        DBSession.flush()
+        existing_bundle = DBSession.query(Artifakt).filter(Artifakt.sha1 == bundle.sha1).one_or_none()
+        if existing_bundle:
+            request.response.status = 302
+            artifacts.insert(0, existing_bundle)
+        else:
+            for a in artifacts:
+                a.bundles.append(bundle)
+            DBSession.flush()
+            artifacts.insert(0, bundle)
 
     return {"artifacts": [a.sha1 for a in artifacts]}
 

@@ -27,18 +27,21 @@ $(function () {
             data: formData,
             // This must be done for file upload !
             contentType: false,
-            processData: false
+            processData: false,
+            statusCode: {
+                302: function(data) {
+                    alert("An artifact or bundle with this content already exists - redirecting you there.");
+                    window.location.href = "/artifact/" + data.responseJSON.artifacts[0];
+                }
+            }
         }).done(function (data) {
-            // If only one file was uploaded we redirect to that specific artifact
-            if (data.artifacts.length == 1)
-                window.location.href = "/artifact/" + data.artifacts[0];
-            // otherwise back to the list of all artifacts.
-            // TODO: But should improve this later
-            else
-                window.location.href = "/artifacts";
+            // If it's a bundle the bundle is the first sha1
+            window.location.href = "/artifact/" + data.artifacts[0];
         }).fail(function (jqXHR, textStatus, errorThrown) {
-            alert("Error uploading file (" + errorThrown + "): " + jqXHR.responseJSON.error);
-            $('.progress').addClass('hidden');
+            if(jqXHR.status != 302) {
+                alert("Error uploading file (" + errorThrown + "): " + jqXHR.responseText);
+                $('.progress').addClass('hidden');
+            }
         });
     });
 
