@@ -110,7 +110,9 @@ $(function () {
                     $.post(window.location.pathname + '/comment_delete/' + span_delete.data('id'), function () {
                         var li = span_delete.closest('li');
                         if (li.has("ul").length) {
-                            li.find('> span.comment').fadeOut(function() { $(this).text('<DELETED>').fadeIn(); });
+                            li.find('> span.comment').fadeOut(function () {
+                                $(this).text('<DELETED>').fadeIn();
+                            });
                         }
                         else {
                             li.fadeOut(400, function () {
@@ -219,8 +221,26 @@ $(function () {
         });
     });
 
+    var entityMap = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': '&quot;',
+        "'": '&#39;',
+        "/": '&#x2F;'
+    };
+
+    function escapeHtml(string) {
+        return String(string).replace(/[&<>"'\/]/g, function (s) {
+            return entityMap[s];
+        });
+    }
+
     $('span.comment').each(function (index) {
-        var $new =  $(this).text().replace(/([\da-f]{6,40})/g, "<a href=\"/artifact/$1\">$1</a>");
+        // First escape the existing text to avoid rendering original text as html
+        var $escaped = escapeHtml($(this).text());
+        // Then linkify
+        var $new = $escaped.replace(/([\da-f]{6,40})/g, "<a href=\"/artifact/$1\">$1</a>");
         $(this).html($new);
     })
 });
