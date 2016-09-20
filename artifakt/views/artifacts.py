@@ -1,4 +1,5 @@
 import mimetypes
+import os
 import tarfile
 import zipfile
 from datetime import datetime
@@ -80,8 +81,22 @@ def artifact_inline_view_raw(request):
 
 def artifact_download(request, inline):
     af = get_artifact(request)
-    disk_name = af.file
-    file_name = af.filename
+
+    if af.is_bundle:
+        if inline:
+            raise HTTPBadRequest("Inline view not supported for bundles")
+        # We have a bundle. So we need to prepare a zip (unless we already have one)
+        # TODO: Need to handle multiple incoming requests (locking)
+        disk_name = af.file
+        if not os.path.exists(disk_name):
+            with zipfile.ZipFile(disk_name, 'w', compression=zipfile.ZIP_BZIP2) as _zip:
+                for cf in af.artifacts:
+                    _zip.write(cf.file, arcname=cf.filename)
+        file_name = af.name + ".zip"
+    else:
+        disk_name = af.file
+        file_name = af.filename
+
     mime, encoding = mimetypes.guess_type(file_name)
     if mime is None:
         mime = ('text/plain' if inline else 'application/octet-stream')

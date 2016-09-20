@@ -202,7 +202,10 @@ class Artifakt(Base):
 
     @property
     def file(self):
-        return os.path.join(storage(), self.sha1[0:2], self.sha1[2:])
+        if self.is_bundle:
+            return os.path.join(storage(), 'zip', self.sha1 + '.zip')
+        else:
+            return os.path.join(storage(), self.sha1[0:2], self.sha1[2:])
 
     @property
     def size(self):
