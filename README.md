@@ -22,6 +22,18 @@ SQLite:
 
 - $VENV/bin/pserve development.ini
 
+## Settings
+
+Some important settings to look at before running Artifakt.
+
+### `artifakt/artifakt.yaml`
+* There are some hardcoded security strings in artifakt/artifakt.yaml. You should update them in a production setup.
+
+### `production.ini` / `development.ini`
+* `artifakt.storage`: This points to the directory where all artifacts are stored. 
+* `hosts`: The address of the server.
+* `port`: The port of the server.
+
 ## Info
 
 [![Build Status](https://travis-ci.org/Zitrax/Artifakt.svg?branch=master)](https://travis-ci.org/Zitrax/Artifakt)

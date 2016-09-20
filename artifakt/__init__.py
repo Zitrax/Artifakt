@@ -16,6 +16,8 @@ from zope.interface import implementer
 def include_fullauth(config):
     """Need some patching to use jinja2 templates with fullauth"""
 
+    import tzf.pyramid_yml
+    config.include('tzf.pyramid_yml')  # To be able to configure
     config.include('pyramid_basemodel')
 
     def patched_includeme(orig_includeme):

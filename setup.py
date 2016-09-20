@@ -20,6 +20,7 @@ requires = [
     'pyramid_chameleon',
     'marshmallow-sqlalchemy',
     'nose',
+    'tzf.pyramid_yml',
     'pyramid_fullauth',
     'pyramid_basemodel'
     #'mysqlclient'  # Needs libpython3.5-dev

@@ -1,0 +1,23 @@
+fullauth:
+    check_csrf: True        # Whether login processes should work with csrf token, or without
+    register:
+        password:
+            require: True   # set to false to not read password during register, and generate random one
+            length_min: 6   # will be used either to check password's length or generate this length random password
+            confirm: True   # by default there will be a field for password confirmation on the registration form
+    AuthTkt:
+        # The secret (a string) used for auth_tkt cookie signing. This value should be unique across all
+        # values provided to Pyramid for various subsystem secrets.
+        secret: Hy0IH08tmFZu    # default secret used to hash auth_tk cookie
+        hashalg: sha512         # default authentication policy hash algorithm
+    login:
+        cookie_max_age: 2592000     # 30 days
+    redirects: # route name, to redirect to. If False, then redirects just to /
+        logout: False
+    session: # session factory settings
+        # factory key is responsible for providing full path to factory class (module.submodule.SessionFactory)
+        factory: pyramid.session.UnencryptedCookieSessionFactoryConfig
+        # settings are key: value pairs of all factory initialize attributes
+        settings:
+            # A string which is used to sign the cookie.
+            secret: RpsJGUlpyHaF
