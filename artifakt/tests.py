@@ -21,7 +21,7 @@ from artifakt.views.upload import upload_post
 from nose.tools import assert_in, assert_true, assert_raises, assert_is_not_none, \
     assert_false, assert_is_none, assert_greater, assert_list_equal
 from pyramid import testing
-from pyramid.httpexceptions import HTTPForbidden
+from pyramid.httpexceptions import HTTPForbidden, HTTPBadRequest
 from pyramid_fullauth.models import User
 from sqlalchemy import desc
 from sqlalchemy.exc import OperationalError, IntegrityError
@@ -52,6 +52,9 @@ class BaseTest(unittest.TestCase):
             Base.metadata.create_all(self.engine)
             self.tmp_dir = TemporaryDirectory()
             models.set_storage(self.tmp_dir.name)
+            zip_dir = os.path.join(models.storage(), 'zip')
+            if not os.path.exists(zip_dir):
+                os.mkdir(zip_dir)
             # All uploads needs a user
             self.user = User()
             self.user.username = "test"
@@ -346,6 +349,16 @@ class TestArtifact(BaseTest):
         self.delete_artifact(bundle)
         transaction.commit()
         DBSession.query(Artifakt).filter(Artifakt.filename == 'foo').one()
+
+    def test_bundle_download(self):
+        self.upload_bundle({'foo': b'foo', 'bar': b'bar'})
+        af = DBSession.query(Artifakt).filter(Artifakt.is_bundle).one()
+        request = testing.DummyRequest()
+        request.matchdict.update({'sha1': af.sha1})
+        response = artifact_download(request, inline=False)
+        eq_(200, response.status_code)
+        assert_raises(HTTPBadRequest, artifact_download, request, inline=True)
+        # TODO: Verify downloaded file
 
     def test_download(self):
         af = self.simple_upload()
