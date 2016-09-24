@@ -3,7 +3,7 @@ import json
 import os
 import shutil
 
-from artifakt.models.models import Artifakt, DBSession, schemas, Repository
+from artifakt.models.models import Artifakt, DBSession, schemas, Repository, BundleLink
 from pyramid.httpexceptions import HTTPBadRequest
 from pyramid.view import view_config
 
@@ -63,7 +63,7 @@ def _upload_post(request, artifacts, blobs):
             if existing is not None:
                 # This is fine if part of a bundle - in that case we can just continue
                 if bundle:
-                    pass
+                    setattr(existing, '_bundle_filename', item.filename)
                 # If not part of a bundle - we should make sure to flag as keep_alive
                 else:
                     request.response.status = 302  # Since metadata will not be used we need to tell user
@@ -103,6 +103,9 @@ def _upload_post(request, artifacts, blobs):
 
             af = objects['artifakt']
 
+            if bundle:
+                setattr(af, '_bundle_filename', item.filename)
+
             repo = None
             if 'repository' in objects:
                 repo = objects['repository']
@@ -127,7 +130,8 @@ def _upload_post(request, artifacts, blobs):
             artifacts.insert(0, existing_bundle)
         else:
             for a in artifacts:
-                a.bundles.append(bundle)
+                link = BundleLink(bundle=bundle, artifact=a, filename=getattr(a, '_bundle_filename'))
+                DBSession.add(link)
             DBSession.flush()
             artifacts.insert(0, bundle)
 

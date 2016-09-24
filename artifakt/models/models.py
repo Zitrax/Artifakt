@@ -23,7 +23,6 @@ from sqlalchemy import (
     UnicodeText,
     Enum
 )
-from sqlalchemy import Table
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import (
     relationship, backref)
@@ -158,13 +157,6 @@ class DeliverySchema(BaseSchema):
 schemas['delivery'] = DeliverySchema()
 
 
-# Link table telling which artifacts belong to which bundles
-bundle_link_table = \
-    Table('bundle_link', Base.metadata,
-          Column('artifact_sha1', CHAR(length=40), ForeignKey('artifakt.sha1'), primary_key=True),
-          Column('bundle_sha1', CHAR(length=40), ForeignKey('artifakt.sha1'), primary_key=True))
-
-
 class Artifakt(Base):
     """One artifact is one or several files.
 
@@ -182,11 +174,25 @@ class Artifakt(Base):
     keep_alive = Column(Boolean, default=True)
 
     vcs = relationship("Vcs")
-    bundles = relationship("Artifakt", secondary=bundle_link_table, backref='artifacts',
-                           primaryjoin=bundle_link_table.c.artifact_sha1 == sha1,
-                           secondaryjoin=bundle_link_table.c.bundle_sha1 == sha1)
+    bundles = relationship("Artifakt", secondary='bundle_link', backref='artifacts',
+                           primaryjoin='BundleLink.artifact_sha1 == Artifakt.sha1',
+                           secondaryjoin='BundleLink.bundle_sha1 == Artifakt.sha1')
     uploader = relationship("User", backref=backref('artifacts', cascade="all, delete-orphan"))
     deliveries = relationship(Delivery, backref='artifakt', cascade="all, delete-orphan")
+
+    def bundle_filename(self, bundle):
+        """Return the filename for this artifact in a specific bundle
+
+        An artifact always has the original filename. However if it's part
+        of a bundle the bundle may have a different filename for the same
+        artifact.
+        """
+        if self.is_bundle:
+            raise ValueError("This is a bundle")
+        for al in self.bundle_links:
+            if al.bundle == bundle:
+                return al.filename if al.filename else self.filename
+        raise ValueError("Artifact not in bundle")
 
     @property
     def name(self):
@@ -264,6 +270,21 @@ class Artifakt(Base):
             if count_files(tdir) == 0:
                 logger.info("Deleting: " + tdir)
                 os.rmdir(tdir)
+
+
+# Link table telling which artifacts belong to which bundles
+class BundleLink(Base):
+    __tablename__ = 'bundle_link'
+
+    artifact_sha1 = Column(CHAR(length=40), ForeignKey('artifakt.sha1'), primary_key=True)
+    bundle_sha1 = Column(CHAR(length=40), ForeignKey('artifakt.sha1'), primary_key=True)
+    filename = Column(Unicode(length=255), nullable=False)
+
+    bundle = relationship(Artifakt, backref=backref("artifact_links", cascade="all, delete-orphan"), foreign_keys=bundle_sha1)
+    artifact = relationship(Artifakt, backref=backref("bundle_links", cascade="all, delete-orphan"), foreign_keys=artifact_sha1)
+
+    def __repr__(self):
+        return "{} -> {} ({})".format(self.bundle_sha1[:4], self.artifact_sha1[:4], self.filename)
 
 
 class ArtifaktSchema(BaseSchema):

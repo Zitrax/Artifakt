@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 import transaction
 from artifakt.models import models
-from artifakt.models.models import Base, Delivery, Comment
+from artifakt.models.models import Base, Delivery, Comment, BundleLink
 from artifakt.models.models import DBSession, Artifakt, Customer
 from artifakt.utils.file import count_files
 from artifakt.utils.time import duration_string
@@ -20,6 +20,7 @@ from artifakt.views.artifacts import artifacts
 from artifakt.views.upload import upload_post
 from nose.tools import assert_in, assert_true, assert_raises, assert_is_not_none, \
     assert_false, assert_is_none, assert_greater, assert_list_equal
+from nose.tools import assert_set_equal
 from pyramid import testing
 from pyramid.httpexceptions import HTTPForbidden, HTTPBadRequest
 from pyramid_fullauth.models import User
@@ -254,6 +255,23 @@ class TestArtifact(BaseTest):
         info = verify_fs(None)
         assert_list_equal([], info['not_on_disk'])
         assert_list_equal([], info['not_in_db'])
+
+    def test_bundle_duplicate_content(self):
+        self.upload_bundle({'aa': b'aa', 'bb': b'bb'})
+        self.upload_bundle({'AA': b'aa', 'cc': b'cc'})
+        b1 = DBSession.query(Artifakt).filter(Artifakt.filename == 'bb').one().bundles[0]
+        b2 = DBSession.query(Artifakt).filter(Artifakt.filename == 'cc').one().bundles[0]
+        assert_set_equal(set(a.filename for a in b1.artifacts), {'aa', 'bb'})  # Fixed filenames
+        assert_set_equal(set(a.bundle_filename(b1) for a in b1.artifacts), {'aa', 'bb'})  # Bundle filenames
+        assert_set_equal(set(a.bundle_filename(b2) for a in b2.artifacts), {'AA', 'cc'})  # Bundle filenames
+        assert_set_equal(set(a.filename for a in b2.artifacts), {'aa', 'cc'})  # Fixed filenames
+
+        # Delete bundles and check that links are removed
+        eq_(4, DBSession.query(BundleLink).count())  # One link per artifact
+        DBSession.delete(b1)
+        DBSession.delete(b2)
+        transaction.commit()
+        eq_(0, DBSession.query(BundleLink).count())
 
     def test_bundle_with_vcs_info(self):
         metadata = {'vcs': {'revision': '1'},

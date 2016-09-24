@@ -91,7 +91,7 @@ def artifact_download(request, inline):
         if not os.path.exists(disk_name):
             with zipfile.ZipFile(disk_name, 'w', compression=zipfile.ZIP_BZIP2) as _zip:
                 for cf in af.artifacts:
-                    _zip.write(cf.file, arcname=cf.filename)
+                    _zip.write(cf.file, arcname=cf.bundle_filename(af))
         file_name = af.name + ".zip"
     else:
         disk_name = af.file

@@ -41,13 +41,13 @@
                     <th>Comment</th>
                     <th>Size</th>
                 </tr>
-                {% for artifact in artifact.artifacts|sort(attribute='filename') %}
+                {% for af in artifact.artifacts|sort(attribute='filename') %}
                     <tr>
-                        <td><a href="/artifact/{{ artifact.sha1 }}">{{ artifact.filename }}</a></td>
-                        <td><code>{{ artifact.sha1 }}</code></td>
-                        <td>{{ artifact.created }}</td>
-                        <td>{{ artifact.comment if artifact.comment else '' }}</td>
-                        <td>{{ artifact.size }}</td>
+                        <td><a href="/artifact/{{ af.sha1 }}">{{ af.bundle_filename(artifact) }}</a></td>
+                        <td><code>{{ af.sha1 }}</code></td>
+                        <td>{{ af.created }}</td>
+                        <td>{{ af.comment if af.comment else '' }}</td>
+                        <td>{{ af.size }}</td>
                     </tr>
                 {% endfor %}
                 <tr>
