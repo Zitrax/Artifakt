@@ -1,5 +1,6 @@
 import mimetypes
 import os
+import re
 import tarfile
 import zipfile
 from datetime import datetime
@@ -9,6 +10,8 @@ from artifakt.models.models import Artifakt, schemas, Delivery, Comment
 from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest, HTTPConflict, HTTPFound, HTTPForbidden
 from pyramid.response import Response, FileResponse
 from pyramid.view import view_config
+from pyramid_mailer import get_mailer
+from pyramid_mailer.message import Message
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 
@@ -136,6 +139,20 @@ def artifact_comment_add(request):
     comment = schemas['comment'].make_instance(data)
     DBSession.add(comment)
     DBSession.flush()
+
+    # Find all parents excluding commenter
+    # Include the uploader of the artifact
+    parents = {p.user for p in comment.parents}.union({comment.artifakt.uploader})
+    parents = set(filter(lambda u: u != comment.user, parents))
+    if parents:
+        mailer = get_mailer(request)
+        artifact_url = re.search(r'^(.*artifact/[0-9a-f]{6}).*', request.url).group(1)
+        message = Message(subject="[Artifakt] New comment",
+                          recipients=[p.email for p in parents],
+                          body="A new comment was added to: {}\n\n{}\n\nBy {}".format(artifact_url, comment.comment,
+                                                                                      comment.user.username))
+        mailer.send_to_queue(message)
+
     return schemas['comment'].dump(comment).data
 
 

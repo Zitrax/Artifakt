@@ -24,6 +24,7 @@ from nose.tools import assert_set_equal
 from pyramid import testing
 from pyramid.httpexceptions import HTTPForbidden, HTTPBadRequest
 from pyramid_fullauth.models import User
+from pyramid_mailer import get_mailer
 from sqlalchemy import desc
 from sqlalchemy.exc import OperationalError, IntegrityError
 from sqlalchemy.testing import eq_
@@ -45,6 +46,7 @@ from webob.multidict import MultiDict
 class BaseTest(unittest.TestCase):
     def setUp(self, create=True):
         self.config = testing.setUp()
+        self.config.include('pyramid_mailer.testing')
         from sqlalchemy import create_engine
         self.engine = create_engine('sqlite://')
         DBSession.remove()  # Must delete a session if it already exists
@@ -63,6 +65,15 @@ class BaseTest(unittest.TestCase):
             self.user.email = "a@b.cd"
             self.user.address_ip = "127.0.0.1"
             DBSession.add(self.user)
+
+            # And one more such that we can test interaction between users
+            self.user2 = User()
+            self.user2.username = "test2"
+            self.user2.password = "1234"
+            self.user2.email = "x@y.zz"
+            self.user2.address_ip = "127.0.0.1"
+            DBSession.add(self.user2)
+
             DBSession.flush()
 
     def tearDown(self):
@@ -73,7 +84,9 @@ class BaseTest(unittest.TestCase):
     def generic_request(self, *args, **kwargs):
         request = testing.DummyRequest(*args, **kwargs)
         request.registry.settings['artifakt.storage'] = self.tmp_dir.name
-        request.user = self.user
+        request.user = kwargs['user'] if 'user' in kwargs else self.user
+        if 'url' in kwargs:
+            request.url = kwargs['url']
         return request
 
     def upload_request(self, files: dict, metadata=None):
@@ -388,23 +401,37 @@ class TestArtifact(BaseTest):
         eq_(200, response.status_code)
         # TODO: Verify downloaded file
 
-    def add_comment(self):
-        af = self.simple_upload()
-        request = self.generic_request()
+    def add_comment(self, reply=True, mail_count=0, user=None, parent_id=None, af=None):
+        if user is None:
+            user = self.user
+        if af is None:
+            af = self.simple_upload()
+        request = self.generic_request(user=user, url='http://example.com:1234/artifact/deadbeef/comment')
         json_comment = {'comment': 'test',
                         'artifakt_sha1': af.sha1,
-                        'parent_id': None}
+                        'parent_id': parent_id,
+                        'user_id': user.id}
         setattr(request, 'json_body', json_comment)
         artifact_comment_add(request)
         eq_(af.comments[0].comment, 'test')
         eq_(len(af.root_comments), 1)
-        json_comment['parent_id'] = af.comments[0].id
-        json_comment['comment'] = 'test2'
-        artifact_comment_add(request)
-        DBSession.refresh(af)  # Or initial data is cached
-        eq_(af.comments[1].comment, 'test2')
-        eq_(len(af.root_comments), 1)
+        if reply:
+            json_comment['parent_id'] = af.comments[0].id
+            json_comment['comment'] = 'test2'
+            artifact_comment_add(request)
+            DBSession.refresh(af)  # Or initial data is cached
+            eq_(af.comments[1].comment, 'test2')
+            eq_(len(af.root_comments), 1)
+
+        mailer = get_mailer(request)
+        eq_(mail_count, len(mailer.queue))
+
         return af
+
+    def test_add_comment_mails(self):
+        # Adding two comments as different users - this should trigger an email
+        af = self.add_comment(reply=False)
+        self.add_comment(reply=False, mail_count=1, user=self.user2, parent_id=af.comments[0].id, af=af)
 
     def test_add_comment_artifact_cascade(self):
         af = self.add_comment()

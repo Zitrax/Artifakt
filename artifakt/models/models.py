@@ -324,6 +324,16 @@ class Comment(Base):
         else:
             DBSession.delete(self)
 
+    @property
+    def parents(self):
+        """All parent comments in this thread"""
+        parents = set()
+        p = self
+        while p.parent:
+            parents.add(p.parent)
+            p = p.parent
+        return parents
+
 
 class CommentSchema(BaseSchema):
     user = fields.Nested(UserSchema, only=['username'])

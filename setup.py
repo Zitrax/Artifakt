@@ -22,7 +22,8 @@ requires = [
     'nose',
     'tzf.pyramid_yml',
     'pyramid_fullauth',
-    'pyramid_basemodel'
+    'pyramid_basemodel',
+    'pyramid_mailer'
     #'mysqlclient'  # Needs libpython3.5-dev
     ]
 
