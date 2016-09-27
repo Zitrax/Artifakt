@@ -39,12 +39,12 @@ $(function () {
             $('#delivery_time').val(new Date().toDateInputValue());
 
             var $new_row = $('<tr style="display: none;">' +
-                '<td>' + new Date(data.time).toLocaleString() + '</td>' +
+                '<td>' + new Date(data.time).toLocaleDateString() + '</td>' +
                 '<td>' + data.to.name + '</td>' +
                 '<td>' + data.comment + '</td>' +
                 '<td>' + data.by.username + '</td>' +
                 '<td><span data-id="' + data.id + '" data-name="' + data.to.name + '" data-time="' +
-                new Date(data.time).toUTCString() + '" class="delete_delivery glyphicon glyphicon-trash"' +
+                new Date(data.time).toLocaleDateString() + '" class="delete_delivery glyphicon glyphicon-trash"' +
                 ' aria-hidden="true"></span></td>' +
                 '</tr>'
             );
@@ -130,7 +130,7 @@ $(function () {
 
     $(document).on('click', 'span.delete_delivery', function () {
         $('#delivery_delete_name').text($(this).data('name'));
-        $('#delivery_delete_time').text(new Date($(this).data('time') + ' UTC').toLocaleString());
+        $('#delivery_delete_time').text(new Date($(this).data('time') + ' UTC').toLocaleDateString());
         var td_delete = $(this);
         $("#delete_delivery_confirm").dialog({
             width: 400,
