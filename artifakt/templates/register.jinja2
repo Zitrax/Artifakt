@@ -55,7 +55,8 @@
             <div class="form-group row {{ 'error' if 'password' in errors else '' }}">
                 <label for="password" class="col-sm-2 control-label">Password:</label>
                 <div class="col-sm-10">
-                    <input class="form-control" type="password" id="password" name="password" required="required"/>
+                    <input class="form-control" type="password" id="password" name="password" required="required"
+                           placeholder="Minimum 6 characters"/>
                     {% if 'password' in errors %}
                         <span class="help-inline">{{ errors['password'] }}</span>
                     {% endif %}
@@ -67,7 +68,7 @@
                     <label for="confirm_password" class="col-sm-2 control-label">Confirm password:</label>
                     <div class="col-sm-10">
                         <input class="form-control" type="password" name="confirm_password" id="confirm_password"
-                               required="required"/>
+                               required="required" placeholder="Minimum 6 characters"/>
                         {% if 'confirm_password' in errors %}
                             <span class="help-inline">{{ errors['confirm_password'] }}</span>
                         {% endif %}

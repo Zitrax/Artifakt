@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="{{ request.locale_name }}">
+<head>
+    {% include 'head.jinja2' %}
+    <title>Artifakt - New Password</title>
+</head>
+<body>
+{% include 'navbar.jinja2' %}
+<div class="container">
+
+    <h1>Recover your password - choose new password</h1>
+    <div class="row-fluid">
+        <div class="span8">
+            {% if not status %}
+                <div class="alert alert-error">Error! {{ msg }}</div>
+            {% endif %}
+            <form class="form-horizontal" id="reset_password" name="reset_password" method="POST"
+                  action="{{ request.current_route_path() }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}"/>
+                <fieldset class="form-group">
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="password">Password:</label>
+                        <div class="col-sm-10">
+                            <input type="password" class="form-control" id="password" name="password"
+                                   placeholder="Minimum 6 characters"/>
+                            <span class="help-inline" id="password_status"></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="confirm_password">Confirm password:</label>
+                        <div class="col-sm-10">
+                            <input type="password" class="form-control" name="confirm_password" id="confirm_password"
+                                   placeholder="Minimum 6 characters"/>
+                            <span class="help-inline" id="confirm_password_status"></span>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-large btn-primary">Reset Password</button>
+                    </div>
+                </fieldset>
+            </form>
+        </div>
+        <div class="span2"></div>
+    </div>
+</div>
