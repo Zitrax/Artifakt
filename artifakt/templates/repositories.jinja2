@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="{{ request.locale_name }}">
+<head>
+    {% include 'head.jinja2' %}
+    <script src="/js/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="/css/jquery-ui.min.css">
+    <title>Repositories</title>
+</head>
+<body>
+{% include 'navbar.jinja2' %}
+<div class="container">
+    <table id="repositories" class="table table-striped table-hover table-condensed">
+        <tr>
+            <th>Name</th>
+        </tr>
+        {% for repo in repositories %}
+            <tr>
+                <td><a href="/repository/{{ repo.id }}">{{ repo.name }}</a></td>
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+
+</body>
+</html>

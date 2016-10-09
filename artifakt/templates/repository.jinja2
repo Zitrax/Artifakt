@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="{{ request.locale_name }}">
+<head>
+    {% include 'head.jinja2' %}
+    <title>Repository - {{ repository.name }}</title>
+</head>
+<body>
+{% include 'navbar.jinja2' %}
+<div class="container">
+
+    <div class="panel panel-success">
+
+        <div class="panel-heading">
+            <h3 id="filename" class="panel-title"><b>
+                {{ repository.name }}
+            </b></h3>
+        </div>
+
+        <div class="panel-body">
+            <table class="table table-striped table-hover table-condensed">
+                <tr>
+                    <th>URL</th>
+                    <td>{{ repository.url }}</td>
+                </tr>
+                <tr>
+                    <th>Type</th>
+                    <td>{{ repository.type }}</td>
+                </tr>
+            </table>
+        </div>
+
+    </div>
+
+    <div class="panel panel-success">
+
+        <div class="panel-heading">
+            <h3 id="filename" class="panel-title"><b>Artifacts</b></h3>
+        </div>
+
+        <div class="panel-body">
+
+            <table class="table table-striped table-hover table-condensed">
+                <tr>
+                    <th>Filename</th>
+                    <th>SHA1</th>
+                    <th>Created</th>
+                    <th>Comment</th>
+                </tr>
+                {% for artifact in repository.artifacts %}
+                    <tr>
+                        {% if artifact.is_bundle %}
+                            <td><a href="/artifact/{{ artifact.sha1 }}">
+                                <span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span>
+                                {{ artifact.name }}</a></td>
+                        {% elif artifact.bundles %}
+                            <td><a href="/artifact/{{ artifact.sha1 }}">
+                                <span class="glyphicon glyphicon-level-up" aria-hidden="true"></span>
+                                {{ artifact.filename }}</a></td>
+                        {% else %}
+                            <td><a href="/artifact/{{ artifact.sha1 }}">{{ artifact.filename }}</a></td>
+                        {% endif %}
+                        <td><code>{{ artifact.sha1 }}</code></td>
+                        <td>{{ artifact.created }}</td>
+                        <td>{{ artifact.comment if artifact.comment else '' }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

@@ -113,6 +113,9 @@ def main(global_config, **settings):
     config.add_route('customers', '/customers')
     config.add_route('customers_json', '/customers.json')
 
+    config.add_route('repositories', '/repositories')
+    config.add_route('repository', '/repository/{id}')
+
     config.add_route('upload', '/upload')
 
     config.add_route('search', '/search/{string}')

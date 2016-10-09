@@ -174,6 +174,7 @@ class Artifakt(Base):
     keep_alive = Column(Boolean, default=True)
 
     vcs = relationship("Vcs")
+    repository = relationship("Repository", secondary='vcs', backref='artifacts')
     bundles = relationship("Artifakt", secondary='bundle_link', backref='artifacts',
                            primaryjoin='BundleLink.artifact_sha1 == Artifakt.sha1',
                            secondaryjoin='BundleLink.bundle_sha1 == Artifakt.sha1')
@@ -280,8 +281,10 @@ class BundleLink(Base):
     bundle_sha1 = Column(CHAR(length=40), ForeignKey('artifakt.sha1'), primary_key=True)
     filename = Column(Unicode(length=255), nullable=False)
 
-    bundle = relationship(Artifakt, backref=backref("artifact_links", cascade="all, delete-orphan"), foreign_keys=bundle_sha1)
-    artifact = relationship(Artifakt, backref=backref("bundle_links", cascade="all, delete-orphan"), foreign_keys=artifact_sha1)
+    bundle = relationship(Artifakt, backref=backref("artifact_links", cascade="all, delete-orphan"),
+                          foreign_keys=bundle_sha1)
+    artifact = relationship(Artifakt, backref=backref("bundle_links", cascade="all, delete-orphan"),
+                            foreign_keys=artifact_sha1)
 
     def __repr__(self):
         return "{} -> {} ({})".format(self.bundle_sha1[:4], self.artifact_sha1[:4], self.filename)

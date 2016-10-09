@@ -106,7 +106,9 @@
                     </tr>
                     <tr>
                         <th>Repository</th>
-                        <td>{{ artifact.vcs.repository.name }}</td>
+                        <td>
+                            <a href="/repository/{{ artifact.vcs.repository.id }}">{{ artifact.vcs.repository.name }}</a>
+                        </td>
                     </tr>
                     <tr>
                         <th>Type</th>
