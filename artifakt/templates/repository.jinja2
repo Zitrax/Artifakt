@@ -47,15 +47,19 @@
                     <th>Comment</th>
                 </tr>
                 {% for artifact in repository.artifacts %}
+                    {% if not artifact.bundles %}
                     <tr>
                         {% if artifact.is_bundle %}
                             <td><a href="/artifact/{{ artifact.sha1 }}">
                                 <span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span>
                                 {{ artifact.name }}</a></td>
+                               {# Disabled since showing only the bundle makes it a bit cleaner #}
+{#
                         {% elif artifact.bundles %}
                             <td><a href="/artifact/{{ artifact.sha1 }}">
                                 <span class="glyphicon glyphicon-level-up" aria-hidden="true"></span>
                                 {{ artifact.filename }}</a></td>
+#}
                         {% else %}
                             <td><a href="/artifact/{{ artifact.sha1 }}">{{ artifact.filename }}</a></td>
                         {% endif %}
@@ -63,6 +67,7 @@
                         <td>{{ artifact.created }}</td>
                         <td>{{ artifact.comment if artifact.comment else '' }}</td>
                     </tr>
+                    {% endif %}
                 {% endfor %}
             </table>
         </div>
