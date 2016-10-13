@@ -129,6 +129,7 @@ def _upload_post(request, artifacts, blobs):
             request.response.status = 302
             artifacts.insert(0, existing_bundle)
         else:
+            bundle.vcs = artifacts[0].vcs  # Same vcs for all involved artifacts.
             for a in artifacts:
                 link = BundleLink(bundle=bundle, artifact=a, filename=getattr(a, '_bundle_filename'))
                 DBSession.add(link)

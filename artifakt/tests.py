@@ -298,6 +298,11 @@ class TestArtifact(BaseTest):
         self.assertCountEqual(['a', 'a'], [f.vcs.repository.url for f in files])
         self.assertCountEqual(['git', 'git'], [f.vcs.repository.type for f in files])
         self.assertCountEqual(['1', '1'], [f.vcs.revision for f in files])
+        bundle = DBSession.query(Artifakt).filter(Artifakt.is_bundle).one()
+        eq_('b', bundle.vcs.repository.name)
+        eq_('a', bundle.vcs.repository.url)
+        eq_('git', bundle.vcs.repository.type)
+        eq_('1', bundle.vcs.revision)
 
     def test_upload_bundle_cascading(self):
         self.upload_bundle({'file.foo': b'foo', 'file.bar': b'bar'})
