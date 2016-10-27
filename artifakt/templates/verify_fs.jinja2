@@ -20,5 +20,17 @@
         <li><span style="font-family:monospace; color:darkred;">{{ fn }}</span></li>
     {% endfor %}
     </ul>
+<h3>Zipped cache: <span class="badge">{{ zip|length }}</span></h3>
+    <ul></ul>
+    {% for fn in zip %}
+        <li><span style="font-family:monospace; color:darkred;">{{ fn }}</span></li>
+    {% endfor %}
+    </ul>
+<h3>Mail queue: <span class="badge">{{ mails|length }}</span></h3>
+    <ul></ul>
+    {% for fn in mails %}
+        <li><span style="font-family:monospace; color:darkred;">{{ fn }}</span></li>
+    {% endfor %}
+    </ul>
 </div>
 </body>
