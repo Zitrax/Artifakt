@@ -169,12 +169,13 @@ class Artifakt(Base):
     comment = Column(UnicodeText)
     created = Column(DateTime, default=func.now())
     uploaded_by = Column(Integer, ForeignKey('users.id'))
-    vcs_id = Column(Integer, ForeignKey('vcs.id'))
+    vcs_id = Column(Integer, ForeignKey(Vcs.id))
     is_bundle = Column(Boolean, default=False)
     keep_alive = Column(Boolean, default=True)
 
-    vcs = relationship("Vcs")
-    repository = relationship("Repository", secondary='vcs', backref='artifacts')
+    vcs = relationship(Vcs)
+    # This must be viewonly or we will get problems with the vcs relationship ( #56 )
+    repository = relationship("Repository", secondary='vcs', backref='artifacts', viewonly=True)
     bundles = relationship("Artifakt", secondary='bundle_link', backref='artifacts',
                            primaryjoin='BundleLink.artifact_sha1 == Artifakt.sha1',
                            secondaryjoin='BundleLink.bundle_sha1 == Artifakt.sha1')

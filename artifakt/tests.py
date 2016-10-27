@@ -386,6 +386,16 @@ class TestArtifact(BaseTest):
         transaction.commit()
         DBSession.query(Artifakt).filter(Artifakt.filename == 'foo').one()
 
+    def test_delete_bundle_vcs_info(self):
+        metadata = {'vcs': {'revision': '1'},
+                    'repository': {'url': 'a', 'name': 'b', 'type': 'git'},
+                    'artifakt': {'comment': 'hej'}}
+        self.upload_bundle({'foo': b'foo', 'bar': b'bar'}, metadata=json.dumps(metadata))
+        bundle = DBSession.query(Artifakt).filter(Artifakt.is_bundle).one()
+        self.delete_artifact(bundle)
+        transaction.commit()
+        eq_([], DBSession.query(Artifakt).filter(Artifakt.is_bundle).all())
+
     def test_bundle_download(self):
         self.upload_bundle({'foo': b'foo', 'bar': b'bar'})
         af = DBSession.query(Artifakt).filter(Artifakt.is_bundle).one()
