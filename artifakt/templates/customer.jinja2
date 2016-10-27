@@ -23,7 +23,7 @@
                 <td><a href="/artifact/{{ delivery.artifakt.sha1 }}">{{ delivery.artifakt.name }}</a></td>
                 <td>
                     <script>
-                        document.write(new Date('{{ delivery.time }} UTC').toLocaleString());
+                        document.write(new Date('{{ delivery.time }} UTC').toLocaleDateString());
                     </script>
                 </td>
                 <td>{{ delivery.comment }}</td>
