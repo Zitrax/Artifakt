@@ -246,7 +246,9 @@ class TestArtifact(BaseTest):
         assert_raises(IntegrityError, self.upload_bundle, {'foo': b'foo', 'bar': b'bar'}, metadata=json.dumps(metadata))
         DBSession.rollback()
         eq_(0, DBSession.query(Artifakt).count())
-        info = verify_fs(None)
+        request = self.generic_request()
+        request.registry.settings['mail.queue_path'] = 'maildir'
+        info = verify_fs(request)
         assert_list_equal([], info['not_on_disk'])
         assert_list_equal([], info['not_in_db'])
 
@@ -265,7 +267,9 @@ class TestArtifact(BaseTest):
         eq_(3, DBSession.query(Artifakt).count())
         files = DBSession.query(Artifakt).all()
         self.assertCountEqual([f.filename for f in files], [None, 'aa', 'bb'])
-        info = verify_fs(None)
+        request = self.generic_request()
+        request.registry.settings['mail.queue_path'] = 'maildir'
+        info = verify_fs(request)
         assert_list_equal([], info['not_on_disk'])
         assert_list_equal([], info['not_in_db'])
 
@@ -560,6 +564,7 @@ class TestAdmin(BaseTest):
     def test_verify_fs(self):
         # TODO: Should also test with some items in the lists
         request = self.generic_request()
+        request.registry.settings['mail.queue_path'] = 'maildir'
         data = verify_fs(request)
         eq_(200, request.response.status_code)
         assert_in('not_on_disk', data)
