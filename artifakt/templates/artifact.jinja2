@@ -7,6 +7,9 @@
     <script src="/js/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="/css/jquery-ui.min.css">
 
+    <link href="/bootstrap/bootstrap3-editable/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet">
+    <script src="/bootstrap/bootstrap3-editable/bootstrap3-editable/js/bootstrap-editable.js"></script>
+
 </head>
 <body>
 {% include 'navbar.jinja2' %}
@@ -24,10 +27,9 @@
     <div class="panel-heading">
         <h3 id="filename" class="panel-title"><b>
             {% if artifact.is_bundle %}
-                <span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span>&nbsp;{{ artifact.name }}
-            {% else %}
-                {{ artifact.name }}
+                <span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span>&nbsp;
             {% endif %}
+            <span id="editable_filename">{{ artifact.name }}</span>
         </b></h3>
     </div>
 

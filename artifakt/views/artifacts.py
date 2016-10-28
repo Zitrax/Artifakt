@@ -7,7 +7,7 @@ from datetime import datetime
 
 from artifakt import DBSession
 from artifakt.models.models import Artifakt, schemas, Delivery, Comment
-from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest, HTTPConflict, HTTPFound, HTTPForbidden
+from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest, HTTPConflict, HTTPFound, HTTPForbidden, HTTPException
 from pyramid.response import Response, FileResponse
 from pyramid.view import view_config
 from pyramid_mailer import get_mailer
@@ -38,6 +38,45 @@ def get_artifact(request):
         raise HTTPConflict("This abbreviated sha1 matches multiple artifacts")
     except NoResultFound:
         raise HTTPNotFound("No artifact with sha1 {} found".format(sha1))
+
+
+@view_config(route_name='artifact_edit', renderer='json', request_method="POST")
+def artifact_edit(request):
+    # For the exceptions we are forcing txt/json responses
+    # But apparently it should work by default if x-editable
+    # had added json in it's accept header - I could not find
+    # that it was configurable though.
+    if "name" not in request.POST:
+        request.response.status = HTTPBadRequest.code
+        return 'ERROR: Missing name in request'
+    name = request.POST['name']
+    if name not in ['name']:  # Supported attributes to edit
+        request.response.status = HTTPBadRequest.code
+        return 'ERROR: Attribute ' + name + ' is not editable'
+    if "value" not in request.POST:
+        request.response.status = HTTPBadRequest.code
+        return 'ERROR: Missing value in request'
+    value = request.POST['value']
+
+    try:
+        af = get_artifact(request)
+        old_name = af.name
+        setattr(af, name, value)
+
+        # Add a comment describing the change
+        comment = Comment()
+        comment.artifakt_sha1 = request.matchdict['sha1']
+        comment.comment = "Changed name from '{}' to '{}'".format(old_name, value)
+        comment.user_id = request.user.id
+        DBSession.add(comment)
+        DBSession.flush()
+        notify_new_comment(request, comment)
+
+    except HTTPException as ex:
+        request.response.status = ex.status_code
+        return ex.message
+
+    return {'OK': 'OK'}
 
 
 @view_config(route_name='artifact', renderer='artifakt:templates/artifact.jinja2')
@@ -139,7 +178,11 @@ def artifact_comment_add(request):
     comment = schemas['comment'].make_instance(data)
     DBSession.add(comment)
     DBSession.flush()
+    notify_new_comment(request, comment)
+    return schemas['comment'].dump(comment).data
 
+
+def notify_new_comment(request, comment):
     # Find all parents excluding commenter
     # Include the uploader of the artifact
     parents = {p.user for p in comment.parents}.union({comment.artifakt.uploader})
@@ -152,8 +195,6 @@ def artifact_comment_add(request):
                           body="A new comment was added to: {}\n\n{}\n\nBy {}".format(artifact_url, comment.comment,
                                                                                       comment.user.username))
         mailer.send_to_queue(message)
-
-    return schemas['comment'].dump(comment).data
 
 
 @view_config(route_name='artifact_comment_delete', request_method="POST")

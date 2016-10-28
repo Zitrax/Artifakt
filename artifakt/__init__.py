@@ -94,6 +94,7 @@ def main(global_config, **settings):
 
     config.add_route('artifact_json', '/artifact/{sha1}.json')
     config.add_route('artifact', '/artifact/{sha1}')
+    config.add_route('artifact_edit', '/artifact/{sha1}/edit')
     config.add_route('artifact_delete', '/artifact/{sha1}/delete')
     config.add_route('artifact_download', '/artifact/{sha1}/download')
     config.add_route('artifact_view_raw', '/artifact/{sha1}/view_raw')

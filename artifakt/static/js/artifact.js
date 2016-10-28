@@ -1,4 +1,11 @@
 $(function () {
+    $.fn.editable.defaults.mode = 'inline';
+    $('#editable_filename').editable({
+        type: 'text',
+        url: window.location.pathname + '/edit',
+        name: 'name'
+    });
+
     $("form.view_content").submit(function (e) {
         var fsize = parseInt($('#file_size').text());
         if (fsize > 2000000 && !$(this).hasClass('confirmed')) {

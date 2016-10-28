@@ -200,6 +200,10 @@ class Artifakt(Base):
     def name(self):
         return self.filename or self.sha1
 
+    @name.setter
+    def name(self, value):
+        self.filename = value
+
     @property
     def root_comments(self):
         return [c for c in self.comments if c.parent_id is None]
