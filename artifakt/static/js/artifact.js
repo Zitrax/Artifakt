@@ -3,6 +3,7 @@ $(function () {
     $('#editable_filename').editable({
         type: 'text',
         url: window.location.pathname + '/edit',
+        pk: 1,  // Not used - but seem to ne needed to make the request
         name: 'name'
     });
 
