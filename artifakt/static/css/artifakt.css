@@ -140,3 +140,10 @@ span.comment_by, span.comment_age {
 span.comment_reply a {
     font-size: small;
 }
+
+tr.spacer > td {
+    height: 40px;
+    border-top: none !important;
+    /* Not optimal - would prefer to inherit default background instead of hardcoding white. */
+    background-color: white;
+}
