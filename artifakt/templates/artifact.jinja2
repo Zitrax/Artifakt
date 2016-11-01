@@ -105,7 +105,9 @@
         {% endif %}
 
         {% if artifact.vcs is not none %}
-            <tr class="spacer"><td></td></tr>
+            <tr class="spacer">
+                <td></td>
+            </tr>
             <tr class="success">
                 <th colspan="{{ 5 if artifact.is_bundle else 2 }}">Version information</th>
             </tr>
@@ -150,7 +152,11 @@
             {% endif %}
         {% endif %}
         <form style="display: inline;" id="delete" action="/artifact/{{ artifact.sha1 }}/delete">
-            <button type="submit" class="btn btn-sm btn-danger">
+            <button
+                    {% if not artifact.is_bundle and artifact.bundles %}
+                        disabled title="Artifakts belonging to bundles can not be individually deleted."
+                    {% endif %}
+                        type="submit" class="btn btn-sm btn-danger">
                 <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>&nbsp;Delete
             </button>
         </form>
