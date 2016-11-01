@@ -181,7 +181,7 @@
                                 document.write(new Date('{{ delivery.time }} UTC').toLocaleDateString());
                             </script>
                         </td>
-                        <td>{{ delivery.to.name }}</td>
+                        <td><a href="/customer/{{ delivery.to.id }}">{{ delivery.to.name }}</a></td>
                         <td>{{ delivery.comment }}</td>
                         <td>{{ delivery.by }}</td>
                         <td>
