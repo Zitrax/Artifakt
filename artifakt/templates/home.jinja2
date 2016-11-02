@@ -3,7 +3,9 @@
 <head>
     {% include 'head.jinja2' %}
     <title>Artifakt</title>
-    <script>$(function () { $('span.comment').each(linkify); });</script>
+    <script>$(function () {
+        $('span.comment').each(linkify);
+    });</script>
 </head>
 <body>
 {% include 'navbar.jinja2' %}
@@ -55,13 +57,39 @@
         {% for comment in comments %}
             <tr>
                 <td><span class="comment">{{ comment.comment }}</span>&nbsp;&mdash; on <a
-                            href="/artifact/{{ comment.artifakt_sha1 }}">{{ comment.artifakt.name }}</a>&nbsp;&mdash;
+                        href="/artifact/{{ comment.artifakt_sha1 }}">{{ comment.artifakt.name }}</a>&nbsp;&mdash;
                     <span class="comment_by">{{ comment.user }}</span>
                     <span class="comment_age" title="{{ comment.time }}">{{ comment.age }} ago</span>&nbsp;
                 </td>
             </tr>
         {% endfor %}
     </table>
+
+
+    <h2>Latest deliveries</h2>
+    <table class="table table-striped table-hover table-condensed">
+        <tr>
+            <th>To</th>
+            <th>Artifakt</th>
+            <th>Date</th>
+            <th>Comment</th>
+            <th>By</th>
+        </tr>
+        {% for delivery in deliveries %}
+            <tr>
+                <td><a href="/customer/{{ delivery.to.id }}">{{ delivery.to.name }}</a></td>
+                <td><a href="/artifact/{{ delivery.artifakt_sha1 }}">{{ delivery.artifakt.name }}</a></td>
+                <td>
+                    <script>
+                        document.write(new Date('{{ delivery.time }} UTC').toLocaleDateString());
+                    </script>
+                </td>
+                <td>{{ delivery.comment }}</td>
+                <td>{{ delivery.by }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+
 </div>
 </body>
 </html>
