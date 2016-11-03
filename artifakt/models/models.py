@@ -98,11 +98,11 @@ schemas['repository'] = RepositorySchema()
 
 class Vcs(Base):
     __tablename__ = 'vcs'
+    __table_args__ = (UniqueConstraint('repository_id', 'revision', name='rr'),)
+
     id = Column(Integer, nullable=False, autoincrement=True, primary_key=True)
     repository_id = Column(Integer, ForeignKey("repository.id"))
     revision = Column(CHAR(length=40), nullable=False)
-
-    UniqueConstraint('repository_id', 'revision', name='rr')
 
     repository = relationship("Repository")
 

@@ -51,6 +51,12 @@ def _upload_post(request, artifacts, blobs):
     else:
         bundle = None
 
+    # We should reuse the vcs - so create it already here
+    vcs = None
+    if 'vcs' in metadata:
+        objects = validate_metadata({'vcs': metadata.pop('vcs', None)})
+        vcs = objects.get('vcs', None)
+
     for item in files:
         blob = None
         try:
@@ -109,8 +115,7 @@ def _upload_post(request, artifacts, blobs):
             repo = None
             if 'repository' in objects:
                 repo = objects['repository']
-            if repo and 'vcs' in objects:
-                vcs = objects['vcs']
+            if repo and vcs:
                 vcs.repository = repo
                 af.vcs = vcs
 
