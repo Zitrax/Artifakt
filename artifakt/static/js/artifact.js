@@ -3,8 +3,26 @@ $(function () {
     $('#editable_filename').editable({
         type: 'text',
         url: window.location.pathname + '/edit',
-        pk: 1,  // Not used - but seem to ne needed to make the request
-        name: 'name'
+        pk: 1,  // Not used - but seem to be needed to make the request
+        name: 'name',
+        tpl: "<input type='text' style='width: 400px'>"
+    });
+    $('.editable_comment').on('init', function (e, edt) {
+        // The url setting can't use this directly in editable since $(this)
+        // refers to the global window object. Neither can a function simply be used
+        // since it replaces the ajax request.
+        // A workaround is to use init like this.
+        edt.options.url = window.location.pathname + '/comment_edit/' + $(this).data('id');
+    }).editable({
+        type: 'text',
+        pk: 1,  // Not used - but seem to be needed to make the request
+        name: 'comment',
+        tpl: "<input type='text' style='width: 400px'>",
+        toggle: "manual"
+    });
+    $('.edit_comment').click(function (e) {
+        e.stopPropagation();
+        $(e.target).siblings('.editable_comment').editable('toggle');
     });
 
     $("form.view_content").submit(function (e) {
@@ -184,7 +202,7 @@ $(function () {
                 $new_comment.appendTo(target);
                 input.val('');
             } else {
-                var ul = target.find('ul');
+                var ul = target.find('ul:not(.reply_list)');
                 if (!ul) {
                     ul = $('<ul>');
                     ul.appendTo(target);
@@ -208,7 +226,7 @@ $(function () {
         add_comment($new_comment.val(), null, $('#comments'), $new_comment);
     });
 
-    $("span.comment_reply a").click(function () {
+    $("span.comment_reply").click(function () {
         // First remove any existing reply box
         $('.reply_list').remove();
         // Add new
@@ -216,7 +234,7 @@ $(function () {
             '<input data-reply-id="' + $(this).data("comment-id") + '" class="input-sm" type="text" placeholder="Reply">' +
             '&nbsp;<button class="btn btn-sm btn-default" type="submit">Add reply</button>' +
             '</li></ul>');
-        var $target = $(this).parent().parent();
+        var $target = $(this).parent();
         $reply.appendTo($target);
         $reply.find('input').focus().keypress(function (e) {
             if (e.which == 13) {

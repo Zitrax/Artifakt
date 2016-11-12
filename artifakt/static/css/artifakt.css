@@ -147,3 +147,12 @@ tr.spacer > td {
     /* Not optimal - would prefer to inherit default background instead of hardcoding white. */
     background-color: white;
 }
+
+.reply_arrow {
+    font-size: large;
+    font-weight: bolder;
+}
+
+.comment_reply, .edit_comment, .delete_comment {
+    cursor: pointer;
+}

@@ -206,6 +206,20 @@ def artifact_comment_delete(request):
     return Response()
 
 
+@view_config(route_name='artifact_comment_edit', renderer='json', request_method="POST")
+def artifact_comment_edit(request):
+    comment = DBSession.query(Comment).filter(Comment.id == request.matchdict['id']).one()
+    if request.user.id != comment.user_id:
+        request.response.status = HTTPForbidden.code
+        return "ERROR: Not your comment"
+    if "value" not in request.POST:
+        request.response.status = HTTPBadRequest.code
+        return 'ERROR: Missing value in request'
+    value = request.POST['value']
+    comment.comment = value
+    return {'OK': 'OK'}
+
+
 @view_config(route_name='artifact_delivery_add', request_method="POST", renderer="json")
 def artifact_delivery_add(request):
     data = request.json_body

@@ -102,6 +102,7 @@ def main(global_config, **settings):
     config.add_route('artifact_view_archive', '/artifact/{sha1}/view_archive')
     config.add_route('artifact_comment_add', '/artifact/{sha1}/comment')
     config.add_route('artifact_comment_delete', '/artifact/{sha1}/comment_delete/{id}')
+    config.add_route('artifact_comment_edit', '/artifact/{sha1}/comment_edit/{id}')
     config.add_route('artifact_delivery_add', '/artifact/{sha1}/delivery')
     config.add_route('artifact_delivery_delete', '/artifact/{sha1}/delivery_delete/{id}')
 
