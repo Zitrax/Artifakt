@@ -228,12 +228,14 @@
             <ul id="comments">
                 {% for comment in artifact.root_comments recursive %}
                     <li>
-                        <span class="comment">{{ comment.comment }}</span>&nbsp;&mdash;&nbsp;
+                        <span data-id="{{ comment.id }}" class="comment {{ "editable_comment" if comment.user.id == request.user.id else "" }}">
+                            {{ comment.comment }}</span>&nbsp;&mdash;&nbsp;
                         <span class="comment_by">{{ "" if comment.deleted else comment.user }}</span>
                         <span class="comment_age" title="{{ comment.time }}">{{ comment.age }} ago</span>&nbsp;
                         {% if not comment.deleted %}
-                            <span class="comment_reply"><a data-comment-id="{{ comment.id }}">Reply</a></span>
+                            <span class="comment_reply" data-comment-id="{{ comment.id }}"><span class="reply_arrow">↩</span></span>
                             {% if comment.user.id == request.user.id %}
+                                <span class="edit_comment glyphicon glyphicon-edit" aria-hidden="true"></span>
                                 <span data-id="{{ comment.id }}" class="delete_comment glyphicon glyphicon-trash"
                                       aria-hidden="true"></span>
                             {% endif %}
