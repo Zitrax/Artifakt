@@ -15,7 +15,8 @@ from artifakt.utils.file import count_files
 from artifakt.utils.time import duration_string
 from artifakt.views.admin import admin, verify_fs
 from artifakt.views.artifacts import artifact_delete, artifact_download, artifact_comment_add, artifact_delivery_add, \
-    artifact_archive_view, artifact_delivery_delete, artifacts_json, artifact_json
+    artifact_archive_view, artifact_delivery_delete, artifacts_json, artifact_json, artifact_comment_edit, \
+    artifact_comment_delete
 from artifakt.views.artifacts import artifacts
 from artifakt.views.upload import upload_post
 from nose.tools import assert_in, assert_true, assert_raises, assert_is_not_none, \
@@ -447,6 +448,33 @@ class TestArtifact(BaseTest):
 
         return af
 
+    def test_edit_comment(self):
+        af = self.add_comment(reply=False)
+        comment = af.comments[0]
+        assert_false(comment.edited)
+        request = self.generic_request(user=self.user2)
+        request.matchdict['id'] = comment.id
+        artifact_comment_edit(request)
+        eq_(request.response.status_code, HTTPForbidden.code)
+        request.user = self.user
+        artifact_comment_edit(request)
+        eq_(request.response.status_code, HTTPBadRequest.code)
+        request.POST['value'] = 'test_edited'
+        eq_({'OK': 'OK'}, artifact_comment_edit(request))
+        assert_true(comment.edited)
+        eq_(comment.comment, "test_edited")
+
+    def test_delete_comment(self):
+        af = self.add_comment(reply=False)
+        comment = af.comments[0]
+        request = self.generic_request(user=self.user2)
+        request.matchdict['id'] = comment.id
+        assert_raises(HTTPForbidden, artifact_comment_delete, request)
+        request.user = self.user
+        artifact_comment_delete(request)
+        DBSession.refresh(af)
+        eq_(0, len(af.comments))
+
     def test_add_comment_mails(self):
         # Adding two comments as different users - this should trigger an email
         af = self.add_comment(reply=False)
@@ -549,6 +577,21 @@ class TestArtifact(BaseTest):
         data = artifact_json(request)
         eq_(af.filename, data['filename'])
         eq_(af.sha1, data['sha1'])
+
+        # def test_password_reset(self):
+        #
+        #     request = self.generic_request()
+        #     # Mock request.registry['config'].fullauth
+        #     o = type('', (), {})()
+        #     o.fullauth = ''
+        #     request.registry['config'] = o
+        #     # Mock localization
+        #     request._ = dummy_autotranslate
+        #     # Request must have an email
+        #     request.POST['email'] = request.user.email
+        #
+        #     prv = PasswordResetView(request)
+        #     eq_(1, prv.post())
 
 
 class TestAdmin(BaseTest):

@@ -231,7 +231,7 @@
                         <span data-id="{{ comment.id }}" class="comment {{ "editable_comment" if comment.user.id == request.user.id else "" }}">
                             {{ comment.comment }}</span>&nbsp;&mdash;&nbsp;
                         <span class="comment_by">{{ "" if comment.deleted else comment.user }}</span>
-                        <span class="comment_age" title="{{ comment.time }}">{{ comment.age }} ago</span>&nbsp;
+                        <span class="comment_age" title="{{ comment.time }}">{{ comment.age }} ago {{ "(Edited)" if comment.edited else "" }}</span>&nbsp;
                         {% if not comment.deleted %}
                             <span class="comment_reply" data-comment-id="{{ comment.id }}"><span class="reply_arrow">↩</span></span>
                             {% if comment.user.id == request.user.id %}

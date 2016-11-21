@@ -106,6 +106,9 @@ class Vcs(Base):
 
     repository = relationship("Repository")
 
+    def __str__(self):
+        return "VCS({}, {}, {})".format(self.id, self.repository_id, self.revision)
+
 
 class VcsSchema(BaseSchema):
     repository = fields.Nested(RepositorySchema, exclude=('id',))
@@ -314,6 +317,7 @@ class Comment(Base):
     user_id = Column(Integer, ForeignKey('users.id'))
     parent_id = Column(Integer, ForeignKey('comment.id'), nullable=True)
     deleted = Column(Boolean, default=False, nullable=False)
+    edited = Column(Boolean, default=False, nullable=False)
 
     artifakt = relationship('Artifakt', backref=backref('comments', cascade="all, delete-orphan"))
     user = relationship('User')

@@ -217,6 +217,7 @@ def artifact_comment_edit(request):
         return 'ERROR: Missing value in request'
     value = request.POST['value']
     comment.comment = value
+    comment.edited = True
     return {'OK': 'OK'}
 
 
