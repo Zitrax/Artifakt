@@ -156,3 +156,14 @@ tr.spacer > td {
 .comment_reply, .edit_comment, .delete_comment {
     cursor: pointer;
 }
+
+footer {
+    position: fixed;
+    height: 20px;
+    bottom: 0px;
+    right: 5px;
+    margin-bottom: 0px;
+    opacity: 0.3;
+    font-weight: bolder;
+    font-size: smaller;
+}
