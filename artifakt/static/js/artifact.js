@@ -181,6 +181,7 @@ $(function () {
     function add_comment(comment, parent_id, target, input) {
         if (comment.length == 0)
             return;
+        input.val('');  // Clear asap to avoid duplications
         var sha1 = window.location.pathname.split('/').pop();
         $.ajax({
             url: window.location.pathname + '/comment',
@@ -211,7 +212,8 @@ $(function () {
                 input.parent().remove();
             }
         }).fail(function () {
-            alert('fail');
+            input.val(comment);
+            alert('Could not post comment');
         });
     }
 
