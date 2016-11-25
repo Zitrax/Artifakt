@@ -204,7 +204,7 @@ $(function () {
                 input.val('');
             } else {
                 var ul = target.find('ul:not(.reply_list)');
-                if (!ul) {
+                if (!ul.length) {
                     ul = $('<ul>');
                     ul.appendTo(target);
                 }
