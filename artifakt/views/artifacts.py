@@ -146,6 +146,8 @@ def artifact_download(request, inline):
     # at http://stackoverflow.com/q/93551/11722 can be considered.
     response = FileResponse(disk_name, request=request, content_type=mime)
     response.content_disposition = '{}; filename="{}"'.format('inline' if inline else 'attachment', file_name)
+    # Specifically needed for jquery.fileDownload
+    response.set_cookie('fileDownload', 'true')
     return response
 
 

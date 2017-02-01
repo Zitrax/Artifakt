@@ -5,6 +5,7 @@
     <title>Artifact {{ artifact.name }}</title>
     <script src="/js/artifact.js"></script>
     <script src="/js/jquery-ui.min.js"></script>
+    <script src="/js/jquery.FileDownload/jquery.fileDownload.js"></script>
     <link rel="stylesheet" href="/css/jquery-ui.min.css">
 
     <link href="/bootstrap/bootstrap3-editable/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet">
@@ -131,8 +132,11 @@
 
 
         <form style="display: inline;" action="/artifact/{{ artifact.sha1 }}/download">
-            <input type="submit" class="btn btn-sm btn-success"
-                   value="{{ "Download Archive" if artifact.is_bundle else "Download" }}">
+            <button type="submit" class="btn btn-sm btn-success" id="download_button">
+                <span>
+                   {{ "Download Archive" if artifact.is_bundle else "Download" }}
+                </span>
+            </button>
         </form>
         {% if not artifact.is_bundle %}
             <form style=" display: inline;" class="view_content" action="/artifact/{{ artifact.sha1 }}/view_raw">
@@ -228,12 +232,15 @@
             <ul id="comments">
                 {% for comment in artifact.root_comments recursive %}
                     <li>
-                        <span data-id="{{ comment.id }}" class="comment {{ "editable_comment" if comment.user.id == request.user.id else "" }}">
+                        <span data-id="{{ comment.id }}"
+                              class="comment {{ "editable_comment" if comment.user.id == request.user.id else "" }}">
                             {{ comment.comment }}</span>&nbsp;&mdash;&nbsp;
                         <span class="comment_by">{{ "" if comment.deleted else comment.user }}</span>
-                        <span class="comment_age" title="{{ comment.time }}">{{ comment.age }} ago {{ "(Edited)" if comment.edited else "" }}</span>&nbsp;
+                        <span class="comment_age"
+                              title="{{ comment.time }}">{{ comment.age }} ago {{ "(Edited)" if comment.edited else "" }}</span>&nbsp;
                         {% if not comment.deleted %}
-                            <span class="comment_reply" data-comment-id="{{ comment.id }}"><span class="reply_arrow">↩</span></span>
+                            <span class="comment_reply" data-comment-id="{{ comment.id }}"><span
+                                    class="reply_arrow">↩</span></span>
                             {% if comment.user.id == request.user.id %}
                                 <span class="edit_comment glyphicon glyphicon-edit" aria-hidden="true"></span>
                                 <span data-id="{{ comment.id }}" class="delete_comment glyphicon glyphicon-trash"

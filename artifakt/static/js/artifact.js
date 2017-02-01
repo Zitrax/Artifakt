@@ -175,7 +175,16 @@ $(function () {
                 }
             }
         });
+    });
 
+    $(document).on('click', '#download_button', function (event) {
+        event.preventDefault();
+        $.fileDownload($(this).parent()[0].action, {
+            preparingMessageHtml: "Preparing download - depending on the file size(s) this can take time, please wait...",
+            failMessageHtml: "There was a problem, please try again or contact the site owner."
+        });
+        // This is critical to stop the click event which will trigger a normal file download!
+        return false;
     });
 
     function add_comment(comment, parent_id, target, input) {
