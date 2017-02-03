@@ -29,10 +29,27 @@
                 {% endif %}
                 <td><code>{{ artifact.sha1 }}</code></td>
                 <td>{{ artifact.created }}</td>
-                <td>{{ artifact.comment if artifact.comment else ''}}</td>
+                <td>{{ artifact.comment if artifact.comment else '' }}</td>
             </tr>
         {% endfor %}
     </table>
+</div>
+<div class="paginate wrapper">
+    <ul>
+        {% if page > 1 %}
+            <li><a href="?limit={{ limit }}&offset={{ limit*(page-2) }}">&lang;</a></li>
+        {% endif %}
+        {% for i in pages %}
+            <li><a href="?limit={{ limit }}&offset={{ limit*(i-1) }}"
+                    {% if i == page %}
+                   class="active"
+                    {% endif %}
+            >{{ i }}</a></li>
+        {% endfor %}
+        {% if page < page_count %}
+            <li><a href="?limit={{ limit }}&offset={{ limit*page }}">&rang;</a></li>
+        {% endif %}
+    </ul>
 </div>
 </body>
 </html>

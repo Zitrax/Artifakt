@@ -5,8 +5,6 @@ import tarfile
 import zipfile
 from datetime import datetime
 
-from artifakt import DBSession
-from artifakt.models.models import Artifakt, schemas, Delivery, Comment
 from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest, HTTPConflict, HTTPFound, HTTPForbidden, HTTPException
 from pyramid.response import Response, FileResponse
 from pyramid.view import view_config
@@ -14,10 +12,32 @@ from pyramid_mailer import get_mailer
 from pyramid_mailer.message import Message
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
+from artifakt import DBSession
+from artifakt.models.models import Artifakt, schemas, Delivery, Comment
+
 
 @view_config(route_name='artifacts', renderer='artifakt:templates/artifacts.jinja2')
-def artifacts(_):
-    return {'artifacts': DBSession.query(Artifakt).order_by(Artifakt.created.desc()).all()}
+def artifacts(request):
+    query = DBSession.query(Artifakt).order_by(Artifakt.created.desc())
+    count = query.count()
+    offset = int(request.GET.get("offset", 0))
+    limit = int(request.GET.get("limit", 20))
+    page = offset // limit + 1
+    page_count = count // limit
+    if limit * page_count < count:
+        page_count += 1
+    res = {"limit": limit, "page": page, "page_count": page_count,
+           'pages': {1,
+                     page - 1 if page > 1 else 1,
+                     page,
+                     page + 1 if page < page_count else page_count,
+                     page_count}}
+
+    if limit:
+        res['artifacts'] = query.offset(offset).limit(limit)
+    else:
+        res['artifacts'] = query.all()
+    return res
 
 
 @view_config(route_name='artifacts_json', renderer='json')
