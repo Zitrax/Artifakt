@@ -27,11 +27,11 @@ def artifacts(request):
     if limit * page_count < count:
         page_count += 1
     res = {"limit": limit, "page": page, "page_count": page_count,
-           'pages': {1,
-                     page - 1 if page > 1 else 1,
-                     page,
-                     page + 1 if page < page_count else page_count,
-                     page_count}}
+           'pages': sorted({1,
+                            page - 1 if page > 1 else 1,
+                            page,
+                            page + 1 if page < page_count else page_count,
+                            page_count})}
 
     if limit:
         res['artifacts'] = query.offset(offset).limit(limit)
