@@ -8,17 +8,6 @@ from unittest import skip
 from unittest.mock import patch
 
 import transaction
-from artifakt.models import models
-from artifakt.models.models import Base, Delivery, Comment, BundleLink
-from artifakt.models.models import DBSession, Artifakt, Customer
-from artifakt.utils.file import count_files
-from artifakt.utils.time import duration_string
-from artifakt.views.admin import admin, verify_fs
-from artifakt.views.artifacts import artifact_delete, artifact_download, artifact_comment_add, artifact_delivery_add, \
-    artifact_archive_view, artifact_delivery_delete, artifacts_json, artifact_json, artifact_comment_edit, \
-    artifact_comment_delete
-from artifakt.views.artifacts import artifacts
-from artifakt.views.upload import upload_post
 from nose.tools import assert_in, assert_true, assert_raises, assert_is_not_none, \
     assert_false, assert_is_none, assert_greater, assert_list_equal
 from nose.tools import assert_set_equal
@@ -30,6 +19,19 @@ from sqlalchemy import desc
 from sqlalchemy.exc import OperationalError, IntegrityError
 from sqlalchemy.testing import eq_
 from webob.multidict import MultiDict
+
+from artifakt.models import models
+from artifakt.models.models import Base, Delivery, Comment, BundleLink
+from artifakt.models.models import DBSession, Artifakt, Customer
+from artifakt.utils.file import count_files
+from artifakt.utils.time import duration_string
+from artifakt.views.admin import admin, verify_fs
+from artifakt.views.artifacts import artifact_delete, artifact_download, artifact_comment_add, artifact_delivery_add, \
+    artifact_archive_view, artifact_delivery_delete, artifacts_json, artifact_json, artifact_comment_edit, \
+    artifact_comment_delete
+from artifakt.views.artifacts import artifacts
+from artifakt.views.search import search
+from artifakt.views.upload import upload_post
 
 
 # Enable to see SQL logs
@@ -561,6 +563,40 @@ class TestArtifact(BaseTest):
             eq_("Artifact archive: foo.zip", response['title'])
             eq_("foo", response['zipfiles'][0].filename)
             # TODO: Add tarfile test
+
+    def test_artifact_search(self):
+        af = self.simple_upload()
+        req = self.generic_request()
+
+        def with_search(sstr, should_find):
+            req.matchdict['string'] = sstr
+            data = search(req)
+            eq_(1 if should_find else 0, data['artifacts'].count())
+            if should_find:
+                af_res = data['artifacts'][0]
+                eq_(af.filename, af_res.filename)
+                eq_(af.sha1, af_res.sha1)
+
+        with_search(af.filename, should_find=True)
+        with_search(af.filename + "U", should_find=False)
+
+    def test_artifacts(self):
+        af = self.simple_upload()
+        data = artifacts(self.generic_request())
+        eq_(1, data['artifacts'].count())
+        af_res = data['artifacts'][0]
+        eq_(af.filename, af_res.filename)
+        eq_(af.sha1, af_res.sha1)
+
+    def test_artifacts_all(self):
+        af = self.simple_upload()
+        req = self.generic_request()
+        req.GET["limit"] = 0
+        data = artifacts(req)
+        eq_(1, data['artifacts'].count())
+        af_res = data['artifacts'][0]
+        eq_(af.filename, af_res.filename)
+        eq_(af.sha1, af_res.sha1)
 
     def test_artifacts_json(self):
         af = self.simple_upload()

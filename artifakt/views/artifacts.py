@@ -18,12 +18,16 @@ from artifakt.models.models import Artifakt, schemas, Delivery, Comment
 
 @view_config(route_name='artifacts', renderer='artifakt:templates/artifacts.jinja2')
 def artifacts(request):
-    query = DBSession.query(Artifakt).order_by(Artifakt.created.desc())
+    return artifact_list(request,
+                         DBSession.query(Artifakt).order_by(Artifakt.created.desc()))
+
+
+def artifact_list(request, query):
     count = query.count()
     offset = int(request.GET.get("offset", 0))
     limit = int(request.GET.get("limit", 20))
-    page = offset // limit + 1
-    page_count = count // limit
+    page = (offset // limit + 1) if limit else 1
+    page_count = (count // limit) if limit else 1
     if limit * page_count < count:
         page_count += 1
     res = {"limit": limit, "page": page, "page_count": page_count,
@@ -36,7 +40,7 @@ def artifacts(request):
     if limit:
         res['artifacts'] = query.offset(offset).limit(limit)
     else:
-        res['artifacts'] = query.all()
+        res['artifacts'] = query
     return res
 
 
