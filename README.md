@@ -28,8 +28,8 @@ MySQL:
   - Create a new database named 'artifaktdb' in mysql
   - Use the following command: CREATE DATABASE artifaktdb CHARACTER SET utf8;
 
-- `initialize_artifakt_db development.ini`
 
+- `initialize_artifakt_db development.ini`
 - `pserve development.ini`
 
 ## Settings
@@ -50,6 +50,12 @@ Some important settings to look at before running Artifakt.
 * `mail.default_sender`: Sender address of emails from the system
 
 To actually send the mails `qp` must be run periodically.
+
+## Scripted usage
+
+It's possible to upload files to the server using HTTP POST from the command line
+or from another service. To make this easier there is a python script available
+for doing that at _artifakt/utils/artifakt_upload.py_.
 
 ## Info
 
