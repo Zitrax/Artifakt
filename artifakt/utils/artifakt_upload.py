@@ -28,6 +28,9 @@ if __name__ == '__main__':
     if args.server[-1] == '/':
         args.server = args.server[:-1]
 
+    if not args.server.startswith('http'):
+        args.server = 'http://' + args.server
+
     if not args.quiet:
         print("Connecting...")
     login_page = args.server + "/login?after=%2F"
