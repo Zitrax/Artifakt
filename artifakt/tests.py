@@ -169,7 +169,7 @@ class TestArtifact(BaseTest):
         upload_post(request)
         eq_(302, request.response.status_code)
 
-    def test_upload_with_metadata(self):
+    def upload_with_metadata(self):
         metadata = {'artifakt': {'comment': 'test'},
                     'repository': {'url': 'r-url', 'name': 'r-name', 'type': 'git'},
                     'vcs': {'revision': '1'}}
@@ -181,7 +181,10 @@ class TestArtifact(BaseTest):
         eq_(200, request.response.status_code)
         target = os.path.join(self.tmp_dir.name, sha1[0:2], sha1[2:])
         assert_true(os.path.exists(target), target)
+        return sha1
 
+    def test_upload_with_metadata(self):
+        sha1 = self.upload_with_metadata()
         # Verify metadata
         af = DBSession.query(Artifakt).filter(Artifakt.sha1 == sha1).one()
         eq_('file.foo', af.filename)
@@ -204,6 +207,25 @@ class TestArtifact(BaseTest):
         # Now there should be neither an artifakt object or a file
         eq_(0, count_files(self.tmp_dir.name))
         eq_(0, DBSession.query(Artifakt).count())
+
+    def test_upload_delete_upload(self):
+        # Verify fix for #77
+        # Upload with metadata, delete and upload the same file again
+        sha1 = self.upload_with_metadata()
+        af = DBSession.query(Artifakt).filter(Artifakt.sha1 == sha1).one()
+        self.delete_artifact(af)
+        transaction.commit()  # Must commit for the file on disk to go away
+        sha1 = self.upload_with_metadata()
+        # Verify metadata
+        af = DBSession.query(Artifakt).filter(Artifakt.sha1 == sha1).one()
+        eq_('file.foo', af.filename)
+        eq_(sha1, af.sha1)
+        eq_('test', af.comment)
+        eq_(1, af.vcs_id)
+        eq_(1, af.vcs.id)
+        eq_('1', af.vcs.revision)
+        eq_('r-url', af.vcs.repository.url)
+        eq_('r-name', af.vcs.repository.name)
 
     def upload_bundle(self, files, expected_status=200, metadata=None):
         request = self.upload_request(files, metadata=metadata)
@@ -495,7 +517,7 @@ class TestArtifact(BaseTest):
         eq_([], DBSession.query(Comment).all())
 
     def test_add_comment_parent_cascade(self):
-        af = self.add_comment()
+        self.add_comment()
         # And make sure the comment is deleted when the parent comment is
         # noinspection PyComparisonWithNone
         parent = DBSession.query(Comment).filter(Comment.replies != None).one()

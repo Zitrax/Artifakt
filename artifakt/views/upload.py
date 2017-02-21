@@ -3,9 +3,10 @@ import json
 import os
 import shutil
 
-from artifakt.models.models import Artifakt, DBSession, schemas, Repository, BundleLink
 from pyramid.httpexceptions import HTTPBadRequest
 from pyramid.view import view_config
+
+from artifakt.models.models import Artifakt, DBSession, schemas, Repository, BundleLink, Vcs
 
 
 def validate_metadata(data):
@@ -116,10 +117,23 @@ def _upload_post(request, artifacts, blobs):
             if 'repository' in objects:
                 repo = objects['repository']
             if repo and vcs:
+                # First make sure that we do not already have a vcs for this
+                # TODO: The handling of the vcs is a bit messy. If/when supporting
+                #       vcs per bundle file this should be refactored / cleaned up.
+                vcs = DBSession.query(Vcs) \
+                          .filter(Vcs.repository_id == repo.id) \
+                          .filter(Vcs.revision == vcs.revision).first() or vcs
                 vcs.repository = repo
                 af.vcs = vcs
 
             artifacts.append(af)
+
+            # This had to be added to be able to reproduce issue 77 in a
+            # unit test. Possibly the marshmallow_sqlalchemy have some internal caching ?
+            # At least after a upload, delete, upload the artifakt is not inserted
+            # the second time without this.
+            DBSession.add(af)
+
             DBSession.flush()
         except Exception:
             if blob is not None and os.path.exists(blob):
