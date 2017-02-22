@@ -169,10 +169,11 @@ class TestArtifact(BaseTest):
         upload_post(request)
         eq_(302, request.response.status_code)
 
-    def upload_with_metadata(self):
-        metadata = {'artifakt': {'comment': 'test'},
-                    'repository': {'url': 'r-url', 'name': 'r-name', 'type': 'git'},
-                    'vcs': {'revision': '1'}}
+    def upload_with_metadata(self, metadata=None):
+        if metadata is None:
+            metadata = {'artifakt': {'comment': 'test'},
+                        'repository': {'url': 'r-url', 'name': 'r-name', 'type': 'git'},
+                        'vcs': {'revision': '1'}}
         request = self.upload_request({'file.foo': b'foo'}, metadata=json.dumps(metadata))
         response = upload_post(request)
         assert_in('artifacts', response)
@@ -191,7 +192,6 @@ class TestArtifact(BaseTest):
         eq_(sha1, af.sha1)
         eq_('test', af.comment)
         eq_(1, af.vcs_id)
-        eq_(1, af.vcs.id)
         eq_('1', af.vcs.revision)
         eq_('r-url', af.vcs.repository.url)
         eq_('r-name', af.vcs.repository.name)
@@ -222,10 +222,34 @@ class TestArtifact(BaseTest):
         eq_(sha1, af.sha1)
         eq_('test', af.comment)
         eq_(1, af.vcs_id)
-        eq_(1, af.vcs.id)
         eq_('1', af.vcs.revision)
         eq_('r-url', af.vcs.repository.url)
         eq_('r-name', af.vcs.repository.name)
+
+    def test_upload_repository_no_revision(self):
+        metadata = {'artifakt': {'comment': 'test'},
+                    'repository': {'url': 'r-url', 'name': 'r-name', 'type': 'git'}}
+        sha1 = self.upload_with_metadata(metadata=metadata)
+        # Verify metadata
+        af = DBSession.query(Artifakt).filter(Artifakt.sha1 == sha1).one()
+        eq_('file.foo', af.filename)
+        eq_(sha1, af.sha1)
+        eq_('test', af.comment)
+        assert_is_not_none(af.vcs)
+        eq_(1, af.vcs_id)
+        eq_('r-url', af.vcs.repository.url)
+        eq_('r-name', af.vcs.repository.name)
+
+    def test_upload_no_repository_no_revision(self):
+        metadata = {'artifakt': {'comment': 'test'}}
+        sha1 = self.upload_with_metadata(metadata=metadata)
+        # Verify metadata
+        af = DBSession.query(Artifakt).filter(Artifakt.sha1 == sha1).one()
+        eq_('file.foo', af.filename)
+        eq_(sha1, af.sha1)
+        eq_('test', af.comment)
+        assert_is_none(af.vcs)
+        assert_is_none(af.vcs_id)
 
     def upload_bundle(self, files, expected_status=200, metadata=None):
         request = self.upload_request(files, metadata=metadata)

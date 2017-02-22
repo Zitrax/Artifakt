@@ -53,10 +53,9 @@ def _upload_post(request, artifacts, blobs):
         bundle = None
 
     # We should reuse the vcs - so create it already here
-    vcs = None
-    if 'vcs' in metadata:
-        objects = validate_metadata({'vcs': metadata.pop('vcs', None)})
-        vcs = objects.get('vcs', None)
+    # Default revision to 0 if there is none
+    objects = validate_metadata({'vcs': metadata.pop('vcs', {'revision': 0})})
+    vcs = objects.get('vcs', None)
 
     for item in files:
         blob = None
