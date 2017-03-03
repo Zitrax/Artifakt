@@ -18,11 +18,15 @@ from artifakt.models.models import Artifakt, schemas, Delivery, Comment
 
 @view_config(route_name='artifacts', renderer='artifakt:templates/artifacts.jinja2')
 def artifacts(request):
+    sort_field = request.GET.get('sort', 'created')
+    sort_on = getattr(Artifakt, sort_field, Artifakt.created)
+    asc = 'asc' in request.GET
     return artifact_list(request,
-                         DBSession.query(Artifakt).order_by(Artifakt.created.desc()))
+                         DBSession.query(Artifakt).order_by(sort_on if asc else sort_on.desc()),
+                         asc)
 
 
-def artifact_list(request, query):
+def artifact_list(request, query, asc=False):
     count = query.count()
     offset = int(request.GET.get("offset", 0))
     limit = int(request.GET.get("limit", 20))
@@ -31,12 +35,12 @@ def artifact_list(request, query):
     if limit * page_count < count:
         page_count += 1
     res = {"limit": limit, "page": page, "page_count": page_count,
+           'asc': asc,
            'pages': sorted({1,
                             page - 1 if page > 1 else 1,
                             page,
                             page + 1 if page < page_count else page_count,
                             page_count})}
-
     if limit:
         res['artifacts'] = query.offset(offset).limit(limit)
     else:
