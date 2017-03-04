@@ -1,8 +1,10 @@
-from artifakt import DBSession
-from artifakt.models.models import Customer, schemas
 from pyramid.httpexceptions import HTTPBadRequest
 from pyramid.response import Response
 from pyramid.view import view_config
+from sqlalchemy import func
+
+from artifakt import DBSession
+from artifakt.models.models import Customer, schemas
 
 
 @view_config(route_name='customer', renderer='artifakt:templates/customer.jinja2')
@@ -15,7 +17,8 @@ def customer(request):
 
 @view_config(route_name='customers', renderer='artifakt:templates/customers.jinja2')
 def customers(_):
-    return {'customers': DBSession.query(Customer).order_by(Customer.name.asc()).all()}
+    return {'customers': DBSession.query(Customer).order_by(
+        func.lower(Customer.name).asc()).all()}
 
 
 @view_config(route_name='customers_json', renderer='json')
