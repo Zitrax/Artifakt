@@ -18,7 +18,8 @@ requires = [
     'waitress',
     'pyramid_jinja2',
     'pyramid_chameleon',
-    'marshmallow-sqlalchemy <= 0.12.1',  # Seems like we are incompatible with 0.13 now
+    'marshmallow < 3.0.0',  # We seem to be incompatible with 3.0.0b2
+    'marshmallow-sqlalchemy',
     'nose',
     'tzf.pyramid_yml',
     'pyramid_fullauth',
