@@ -87,6 +87,9 @@ class Repository(Base):
     name = Column(UnicodeText)
     type = Column(Enum("git", "svn", name="type_enum"), nullable=False)
 
+    def __str__(self):
+        return self.name
+
 
 class RepositorySchema(BaseSchema):
     class Meta:
@@ -263,7 +266,7 @@ class Artifakt(Base):
 
     @staticmethod
     def metadata_keys():
-        # TODO: Extract ths automatically along with types
+        # TODO: Extract this automatically along with types
         return {'artifakt': ['comment'],
                 'repository': ['url', 'name', 'type'],
                 'vcs': ['revision']}

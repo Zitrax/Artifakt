@@ -32,6 +32,28 @@
         {% for key,vals in metadata.items()|sort %}
             <fieldset>
                 <legend><p class="text-center" style="margin:0;">{{ key|capitalize }}</p></legend>
+                {% if key in values %}
+                    <label class="col-sm-1" for="{{ key }}">{{ key|capitalize }}</label>
+                    <div class="col-sm-11 between">
+                        <select class="form-control"
+                                onchange="data = this.options[this.selectedIndex].dataset; for(var i in data) { $('#{{ key }}\\['+i+'\\]').val(data[i]); }">
+                            <option
+                                    {%- for vk in vals -%}
+                                        {{ (" data-" + vk + '=""') |safe }}
+                                    {%- endfor -%}
+                            >Select {{ key }} or enter manually below&hellip;</option>
+                            <option disabled>──────────</option>
+                            {% for v in values[key] %}
+                                <option
+                                        {%- for vk in vals -%}
+                                            {{ (" data-" + vk + '="' + v[vk] + '"') |safe }}
+                                        {%- endfor -%}
+                                >{{ v }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% endif %}
                 {% for val in vals %}
                     <label class="col-sm-1" for="{{ key }}[{{ val }}]">{{ val|capitalize }}</label>
                     <div class="col-sm-11 between">

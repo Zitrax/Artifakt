@@ -197,4 +197,7 @@ def upload_post(request):
 
 @view_config(route_name='upload', renderer='artifakt:templates/upload_form.jinja2', request_method="GET")
 def upload_form(_):
-    return {"metadata": Artifakt.metadata_keys()}
+    return {"metadata": Artifakt.metadata_keys(),
+            "values": {
+                "repository": DBSession.query(Repository).all()
+            }}
