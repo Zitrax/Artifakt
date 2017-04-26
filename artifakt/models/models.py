@@ -21,8 +21,8 @@ from sqlalchemy import (
     UniqueConstraint,
     Unicode,
     UnicodeText,
-    Enum
-)
+    Enum,
+    CheckConstraint)
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import (
     relationship, backref)
@@ -84,7 +84,7 @@ class Repository(Base):
     __tablename__ = 'repository'
     id = Column(Integer, nullable=False, autoincrement=True, primary_key=True)
     url = Column(Unicode(length=255), nullable=False, unique=True)
-    name = Column(UnicodeText)
+    name = Column(UnicodeText, CheckConstraint('name != ""', name="non_empty_name"))
     type = Column(Enum("git", "svn", name="type_enum"), nullable=False)
 
     def __str__(self):

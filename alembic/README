@@ -1,1 +1,12 @@
 Generic single-database configuration.
+
+How to generate new migration:
+
+* In top level folder run: alembic revision --autogenerate -m "message"
+* Then manually edit the output
+
+How to run migration:
+
+* alembic upgrade head
+
+

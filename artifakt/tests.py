@@ -239,6 +239,7 @@ class TestArtifact(BaseTest):
         eq_(1, af.vcs_id)
         eq_('r-url', af.vcs.repository.url)
         eq_('r-name', af.vcs.repository.name)
+        eq_('0', af.vcs.revision)
 
     def test_upload_repository_empty_revision(self):
         metadata = {'artifakt': {'comment': 'test'},
@@ -254,6 +255,20 @@ class TestArtifact(BaseTest):
         eq_(1, af.vcs_id)
         eq_('r-url', af.vcs.repository.url)
         eq_('r-name', af.vcs.repository.name)
+        eq_('0', af.vcs.revision)
+
+    def test_upload_repository_empty_repository_name(self):
+        metadata = {'artifakt': {'comment': 'test'},
+                    'repository': {'url': 'r-url', 'name': '', 'type': 'git'},
+                    'vcs': {'revision': ''}}
+        request = self.upload_request({'file.foo': b'foo'}, metadata=json.dumps(metadata))
+        # Verify metadata
+        assert_raises(IntegrityError, upload_post, request)
+        DBSession.rollback()
+
+        # Now there should be neither an artifakt object or a file
+        eq_(0, count_files(self.tmp_dir.name))
+        eq_(0, DBSession.query(Artifakt).count())
 
     def test_upload_no_repository_no_revision(self):
         metadata = {'artifakt': {'comment': 'test'}}
