@@ -54,6 +54,8 @@ def _upload_post(request, artifacts, blobs):
 
     # We should reuse the vcs - so create it already here
     # Default revision to 0 if there is none
+    if 'vcs' in metadata and 'revision' in metadata['vcs'] and metadata['vcs']['revision'] == "":
+        metadata['vcs']['revision'] = 0
     objects = validate_metadata({'vcs': metadata.pop('vcs', {'revision': 0})})
     vcs = objects.get('vcs', None)
 

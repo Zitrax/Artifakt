@@ -240,6 +240,21 @@ class TestArtifact(BaseTest):
         eq_('r-url', af.vcs.repository.url)
         eq_('r-name', af.vcs.repository.name)
 
+    def test_upload_repository_empty_revision(self):
+        metadata = {'artifakt': {'comment': 'test'},
+                    'repository': {'url': 'r-url', 'name': 'r-name', 'type': 'git'},
+                    'vcs': {'revision': ''}}
+        sha1 = self.upload_with_metadata(metadata=metadata)
+        # Verify metadata
+        af = DBSession.query(Artifakt).filter(Artifakt.sha1 == sha1).one()
+        eq_('file.foo', af.filename)
+        eq_(sha1, af.sha1)
+        eq_('test', af.comment)
+        assert_is_not_none(af.vcs)
+        eq_(1, af.vcs_id)
+        eq_('r-url', af.vcs.repository.url)
+        eq_('r-name', af.vcs.repository.name)
+
     def test_upload_no_repository_no_revision(self):
         metadata = {'artifakt': {'comment': 'test'}}
         sha1 = self.upload_with_metadata(metadata=metadata)
