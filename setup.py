@@ -24,7 +24,8 @@ requires = [
     'tzf.pyramid_yml',
     'pyramid_fullauth',
     'pyramid_basemodel',
-    'pyramid_mailer'
+    'pyramid_mailer',
+    'portalocker'
     #'mysqlclient'  # Needs libpython3.5-dev
     ]
 

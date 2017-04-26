@@ -5,6 +5,7 @@ import tarfile
 import zipfile
 from datetime import datetime
 
+import portalocker
 from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest, HTTPConflict, HTTPFound, HTTPForbidden, HTTPException
 from pyramid.response import Response, FileResponse
 from pyramid.view import view_config
@@ -159,12 +160,15 @@ def artifact_download(request, inline):
         if inline:
             raise HTTPBadRequest("Inline view not supported for bundles")
         # We have a bundle. So we need to prepare a zip (unless we already have one)
-        # TODO: Need to handle multiple incoming requests (locking)
         disk_name = af.file
-        if not os.path.exists(disk_name):
-            with zipfile.ZipFile(disk_name, 'w', compression=zipfile.ZIP_BZIP2) as _zip:
-                for cf in af.artifacts:
-                    _zip.write(cf.file, arcname=cf.bundle_filename(af))
+        # Locking on a separate file since zipfile did not want to write to the
+        # same file we are locking on. It just means that we need to clean up
+        # that file at the same time as the main cache file.
+        with portalocker.Lock(disk_name + ".lock", timeout=300, check_interval=1):
+            if not os.path.exists(disk_name):
+                with zipfile.ZipFile(disk_name, 'w', compression=zipfile.ZIP_BZIP2) as _zip:
+                    for cf in af.artifacts:
+                        _zip.write(cf.file, arcname=cf.bundle_filename(af))
         file_name = af.name + ".zip"
     else:
         disk_name = af.file
