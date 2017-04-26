@@ -88,11 +88,13 @@ class BaseTest(unittest.TestCase):
         request = testing.DummyRequest(*args, **kwargs)
         request.registry.settings['artifakt.storage'] = self.tmp_dir.name
         request.user = kwargs['user'] if 'user' in kwargs else self.user
+        if request.user is None:
+            request.user = self.user
         if 'url' in kwargs:
             request.url = kwargs['url']
         return request
 
-    def upload_request(self, files: dict, metadata=None):
+    def upload_request(self, files: dict, metadata=None, user=None):
         if metadata is None:
             metadata = '{}'
         fields = MultiDict({'metadata': metadata})
@@ -101,12 +103,12 @@ class BaseTest(unittest.TestCase):
             fs.file = BytesIO(content)
             fs.filename = name
             fields.add('file', fs)
-        return self.generic_request(post=fields)
+        return self.generic_request(post=fields, user=user)
 
-    def simple_upload(self, content=None, expected_status=200):
+    def simple_upload(self, content=None, expected_status=200, user=None):
         if content is None:
             content = {'file.foo': b'foo'}
-        request = self.upload_request(content)
+        request = self.upload_request(content, user=user)
         res = upload_post(request)
         eq_(expected_status, request.response.status_code)
         return DBSession.query(Artifakt).filter(Artifakt.sha1 == res['artifacts'][0]).one()
@@ -423,11 +425,25 @@ class TestArtifact(BaseTest):
         assert_true(os.path.exists(file_path))
         # Now delete and verify that both file and artifact are deleted
         self.delete_artifact(af)
+        # Only mentioning below once, but used in several places
         # FIXME: Investigate this: http://stackoverflow.com/a/23176618/11722
         transaction.commit()  # TODO: Better way to test this ? We must commit for the file to go away.
         assert_false(os.path.exists(file_path))
         assert_false(os.path.exists(os.path.dirname(file_path)))
         assert_is_none(DBSession.query(Artifakt).one_or_none())
+
+    def test_delete_other_user(self):
+        # Upload an artifact, and check that file exists
+        af = self.simple_upload(user=self.user2)
+        assert_is_not_none(af)
+        file_path = af.file
+        assert_true(os.path.exists(file_path))
+        # Now delete and verify that we can't since we are not user 2
+        assert_raises(HTTPForbidden, self.delete_artifact, af)
+        transaction.commit()
+        assert_true(os.path.exists(file_path))
+        assert_true(os.path.exists(os.path.dirname(file_path)))
+        assert_is_not_none(DBSession.query(Artifakt).one_or_none())
 
     def test_delete_bundle_file(self):
         self.upload_bundle({'foo': b'foo', 'bar': b'bar'})

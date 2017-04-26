@@ -134,6 +134,9 @@ def artifact_delete(request):
         if af.bundles:
             raise HTTPForbidden("This artifact can not be deleted. It belongs to a bundle.")
 
+    if request.user.id != af.uploaded_by:
+        raise HTTPForbidden("Not your artifact")
+
     DBSession.delete(af)
 
     return Response(status_int=302, location="/artifacts")
