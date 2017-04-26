@@ -77,6 +77,14 @@ class BaseTest(unittest.TestCase):
             self.user2.address_ip = "127.0.0.1"
             DBSession.add(self.user2)
 
+            self.user_admin = User()
+            self.user_admin.username = "admin"
+            self.user_admin.password = "4321"
+            self.user_admin.email = "admin@y.zz"
+            self.user_admin.address_ip = "127.0.0.1"
+            self.user_admin.is_admin = True
+            DBSession.add(self.user_admin)
+
             DBSession.flush()
 
     def tearDown(self):
@@ -113,8 +121,8 @@ class BaseTest(unittest.TestCase):
         eq_(expected_status, request.response.status_code)
         return DBSession.query(Artifakt).filter(Artifakt.sha1 == res['artifacts'][0]).one()
 
-    def delete_artifact(self, af):
-        request = self.generic_request()
+    def delete_artifact(self, af, user=None):
+        request = self.generic_request(user=user)
         request.matchdict.update({'sha1': af.sha1})
         artifact_delete(request)
 
@@ -444,6 +452,19 @@ class TestArtifact(BaseTest):
         assert_true(os.path.exists(file_path))
         assert_true(os.path.exists(os.path.dirname(file_path)))
         assert_is_not_none(DBSession.query(Artifakt).one_or_none())
+
+    def test_delete_other_admin(self):
+        # Upload an artifact, and check that file exists
+        af = self.simple_upload(user=self.user2)
+        assert_is_not_none(af)
+        file_path = af.file
+        assert_true(os.path.exists(file_path))
+        # Now delete and verify that we can since we are admin
+        self.delete_artifact(af, user=self.user_admin)
+        transaction.commit()
+        assert_false(os.path.exists(file_path))
+        assert_false(os.path.exists(os.path.dirname(file_path)))
+        assert_is_none(DBSession.query(Artifakt).one_or_none())
 
     def test_delete_bundle_file(self):
         self.upload_bundle({'foo': b'foo', 'bar': b'bar'})
