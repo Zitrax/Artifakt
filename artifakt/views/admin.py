@@ -35,7 +35,7 @@ def verify_fs(request):
         for fn in filenames:
             af = DBSession.query(Artifakt).filter(Artifakt.sha1 == root[-2:] + fn).one_or_none()
             if not af:
-                if fn.endswith('.zip'):
+                if fn.endswith(('.zip', '.zip.lock')):
                     zip.append(os.path.join(root, fn))
                 elif root.startswith(maildir):
                     mails.append(os.path.join(root, fn))
