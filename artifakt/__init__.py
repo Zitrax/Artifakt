@@ -122,6 +122,8 @@ def main(global_config, **settings):
 
     config.add_route('search', '/search/{string}')
 
+    config.add_route('users', '/users')
+
     config.scan()
 
     return config.make_wsgi_app()
