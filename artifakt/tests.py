@@ -12,7 +12,7 @@ from nose.tools import assert_in, assert_true, assert_raises, assert_is_not_none
     assert_false, assert_is_none, assert_greater, assert_list_equal
 from nose.tools import assert_set_equal
 from pyramid import testing
-from pyramid.httpexceptions import HTTPForbidden, HTTPBadRequest
+from pyramid.httpexceptions import HTTPForbidden, HTTPBadRequest, HTTPNotFound
 from pyramid_fullauth.models import User
 from pyramid_mailer import get_mailer
 from sqlalchemy import desc
@@ -32,6 +32,7 @@ from artifakt.views.artifacts import artifact_delete, artifact_download, artifac
 from artifakt.views.artifacts import artifacts
 from artifakt.views.search import search
 from artifakt.views.upload import upload_post
+from artifakt.views.users import users, user
 
 
 # Enable to see SQL logs
@@ -726,6 +727,22 @@ class TestArtifact(BaseTest):
         data = artifact_json(request)
         eq_(af.filename, data['filename'])
         eq_(af.sha1, data['sha1'])
+
+    def test_users(self):
+        user_list = users(self.generic_request())
+        assert_in('users', user_list)
+        eq_(3, len(user_list['users']))
+
+    def test_user(self):
+        req = self.generic_request()
+        assert_raises(HTTPBadRequest, user, req)
+        req.matchdict['id'] = 100
+        assert_raises(HTTPNotFound, user, req)
+        req.matchdict['id'] = 1
+        user_match = user(req)
+        assert_in('user', user_match)
+        assert_is_not_none(user_match['user'])
+        eq_('test', user_match['user'].username)
 
         # def test_password_reset(self):
         #
