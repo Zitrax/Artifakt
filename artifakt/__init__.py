@@ -1,16 +1,23 @@
+import logging
 import os
+import time
 
-from artifakt.models import models
-from artifakt.models.models import (
-    DBSession,
-    Base,
-)
+from apscheduler.schedulers.background import BackgroundScheduler
 from pyramid.config import Configurator
 from pyramid.interfaces import IRootFactory
 from pyramid.security import Allow, Everyone, ALL_PERMISSIONS
 from pyramid_fullauth.auth import BaseACLRootFactoryMixin
 from sqlalchemy import engine_from_config
 from zope.interface import implementer
+
+from artifakt.models import models
+from artifakt.models.models import (
+    DBSession,
+    Base,
+    storage)
+from artifakt.utils.time import duration_string
+
+logger = logging.getLogger(__name__)
 
 
 def include_fullauth(config):
@@ -58,6 +65,19 @@ class ArtifaktRootFactory(BaseACLRootFactoryMixin):
                (Allow, 's:user', 'user'),
                (Allow, 's:inactive', 'user')  # For now - do not care about activation
                ]
+
+
+def clean_bundle_cache():
+    """Clean away cached bundle zip files after 4 hours"""
+    cache_dir = os.path.join(storage(), 'zip')
+    if os.path.exists(cache_dir):
+        for f in os.listdir(cache_dir):
+            abs_f = os.path.join(cache_dir, f)
+            age = time.time() - os.stat(abs_f).st_atime
+            logger.debug(f + " : " + duration_string(age))
+            if age > 14400:  # 4 hours in seconds. TODO: Make it configurable
+                logger.info(f + " : DELETED")
+                os.remove(abs_f)
 
 
 def main(global_config, **settings):
@@ -126,5 +146,10 @@ def main(global_config, **settings):
     config.add_route('user', '/user/{id}')
 
     config.scan()
+
+    # Starting the scheduler that will be used for periodic tasks
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(clean_bundle_cache, 'interval', minutes=10, name="Clean bundle cache")
+    scheduler.start()
 
     return config.make_wsgi_app()

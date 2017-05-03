@@ -25,7 +25,8 @@ requires = [
     'pyramid_fullauth',
     'pyramid_basemodel',
     'pyramid_mailer',
-    'portalocker'
+    'portalocker',
+    'apscheduler'
     #'mysqlclient'  # Needs libpython3.5-dev
     ]
 
