@@ -28,7 +28,7 @@ from artifakt.utils.time import duration_string
 from artifakt.views.admin import admin, verify_fs
 from artifakt.views.artifacts import artifact_delete, artifact_download, artifact_comment_add, artifact_delivery_add, \
     artifact_archive_view, artifact_delivery_delete, artifacts_json, artifact_json, artifact_comment_edit, \
-    artifact_comment_delete
+    artifact_comment_delete, artifact
 from artifakt.views.artifacts import artifacts
 from artifakt.views.search import search
 from artifakt.views.upload import upload_post
@@ -719,6 +719,21 @@ class TestArtifact(BaseTest):
         af_json = data['artifacts'][0]
         eq_(af.filename, af_json['filename'])
         eq_(af.sha1, af_json['sha1'])
+
+    def test_artifact(self):
+        af = self.simple_upload()
+        request = self.generic_request()
+        request.matchdict['sha1'] = af.sha1
+        data = artifact(request)
+        eq_(af, data['artifact'])
+
+    def test_artifact_partial_sha1(self):
+        af = self.simple_upload()
+        request = self.generic_request()
+        request.matchdict['sha1'] = af.sha1[0:6]
+        assert_raises(HTTPFound, artifact, request)
+        request.matchdict['sha1'] = af.sha1[0:6] + 'g'
+        assert_raises(HTTPNotFound, artifact, request)
 
     def test_artifact_json(self):
         af = self.simple_upload()
