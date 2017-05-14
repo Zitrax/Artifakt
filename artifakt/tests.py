@@ -12,7 +12,7 @@ from nose.tools import assert_in, assert_true, assert_raises, assert_is_not_none
     assert_false, assert_is_none, assert_greater, assert_list_equal
 from nose.tools import assert_set_equal
 from pyramid import testing
-from pyramid.httpexceptions import HTTPForbidden, HTTPBadRequest, HTTPNotFound
+from pyramid.httpexceptions import HTTPForbidden, HTTPBadRequest, HTTPNotFound, HTTPFound
 from pyramid_fullauth.models import User
 from pyramid_mailer import get_mailer
 from sqlalchemy import desc
