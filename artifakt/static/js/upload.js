@@ -1,4 +1,13 @@
 $(function () {
+
+    var fd = new FormData();
+    if (!(fd && 'set' in fd)) {
+        $('.container').prepend('<div class="alert alert-danger"><strong>Warning!</strong>' +
+            ' This browser does not support ' +
+            '<a href="https://developer.mozilla.org/en-US/docs/Web/API/FormData/set">' +
+            '<code>FormData.set</code></a> which is needed for upload.</div>')
+    }
+
     $("#upload_form").submit(function (e) {
         e.preventDefault();
         // Note FormData is needed for ajax file upload
@@ -29,7 +38,7 @@ $(function () {
             contentType: false,
             processData: false,
             statusCode: {
-                302: function(data) {
+                302: function (data) {
                     alert("An artifact or bundle with this content already exists - redirecting you there.");
                     window.location.href = "/artifact/" + data.responseJSON.artifacts[0];
                 }
@@ -38,7 +47,7 @@ $(function () {
             // If it's a bundle the bundle is the first sha1
             window.location.href = "/artifact/" + data.artifacts[0];
         }).fail(function (jqXHR, textStatus, errorThrown) {
-            if(jqXHR.status != 302) {
+            if (jqXHR.status != 302) {
                 alert("Error uploading file (" + errorThrown + "): " + jqXHR.responseText);
                 $('.progress').addClass('hidden');
             }
