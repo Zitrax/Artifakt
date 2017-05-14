@@ -1,4 +1,5 @@
 import logging
+import mimetypes
 import os
 import time
 
@@ -23,7 +24,6 @@ logger = logging.getLogger(__name__)
 def include_fullauth(config):
     """Need some patching to use jinja2 templates with fullauth"""
 
-    import tzf.pyramid_yml
     config.include('tzf.pyramid_yml')  # To be able to configure
     config.include('pyramid_basemodel')
 
@@ -36,6 +36,7 @@ def include_fullauth(config):
             #  set_root_factory(...) can not be used.
             configurator.registry.registerUtility(ArtifaktRootFactory, IRootFactory)
             orig_includeme(configurator)
+
         return new_include
 
     import pyramid_fullauth
@@ -98,6 +99,9 @@ def main(global_config, **settings):
     zip_dir = os.path.join(models.storage(), 'zip')
     if not os.path.exists(zip_dir):
         os.mkdir(zip_dir)
+
+    # Add mimetypes that apparently are not known by default
+    mimetypes.add_type('application/x-7z-compressed', '.7z')
 
     config.add_static_view('js', 'static/js', cache_max_age=3600)
     config.add_static_view('css', 'static/css', cache_max_age=3600)

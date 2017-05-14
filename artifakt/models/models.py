@@ -252,13 +252,13 @@ class Artifakt(Base):
 
     @property
     def mime(self):
-        mime, encoding = mimetypes.guess_type(self.filename)
+        mime, encoding = mimetypes.guess_type(self.filename, strict=False)
         return mime
 
     @property
     def is_archive(self):
-        # FIXME: Do not duplicate this and in the view
-        return self.mime in ['application/x-tar', 'application/zip', 'application/x-zip-compressed']
+        return self.mime in ['application/x-tar', 'application/zip', 'application/x-zip-compressed',
+                             'application/x-7z-compressed']
 
     @property
     def is_text(self):

@@ -205,6 +205,11 @@ def artifact_archive_view(request):
         with zipfile.ZipFile(af.file) as _zip:
             ret['zipfiles'] = _zip.infolist()
             return ret
+    if mime in ['application/x-7z-compressed']:
+        with zipfile.ZipFile(af.file, compression=zipfile.ZIP_LZMA) as _zip:
+            ret['zipfiles'] = _zip.infolist()
+            return ret
+
     return {"error": "Mimetype {} is not a known/supported archive".format(mime)}
 
 
