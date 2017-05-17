@@ -24,6 +24,23 @@ $(function () {
         e.stopPropagation();
         $(e.target).siblings('.editable_comment').editable('toggle');
     });
+    $('#editable_repository').editable({
+        type: 'select',
+        url: window.location.pathname + '/edit',
+        name: 'vcs.repository_id',
+        toggle: 'manual',
+        source: '/repositories.json?editable',
+        display: function(value, sourceData) {
+            // Find the currently selected element and generate link for it
+            var elm = sourceData.find(function(e){return e.value===parseInt(value);});
+            $(this).html('<a href="/repository/' + elm.value + '">' + elm.text + '</a>');
+        }
+    });
+    $('#edit_button').click(function(e) {
+        e.stopPropagation();
+        // This will enable and disable all manually editable fields
+       $('[id^="editable_"]').editable('toggle');
+    });
 
     $("form.view_content").submit(function (e) {
         var fsize = parseInt($('#file_size').text());

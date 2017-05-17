@@ -115,7 +115,7 @@
             <tr>
                 <th>Repository</th>
                 <td>
-                    <a href="/repository/{{ artifact.vcs.repository.id }}">{{ artifact.vcs.repository.name }}</a>
+                    <span id="editable_repository" data-value="{{ artifact.vcs.repository.id }}"></span>
                 </td>
             </tr>
             <tr>
@@ -129,7 +129,6 @@
         {% endif %}
 
         </table>
-
 
         <form style="display: inline;" action="/artifact/{{ artifact.sha1 }}/download">
             <button type="submit" class="btn btn-sm btn-success" id="download_button">
@@ -155,6 +154,9 @@
                 </form>
             {% endif %}
         {% endif %}
+        <button type="button" class="btn btn-sm btn-primary" id="edit_button">
+            <span>Edit</span>
+        </button>
         <form style="display: inline;" id="delete" action="/artifact/{{ artifact.sha1 }}/delete">
             <button
                     {% if not artifact.is_bundle and artifact.bundles %}

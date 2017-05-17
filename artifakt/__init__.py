@@ -136,6 +136,7 @@ def main(global_config, **settings):
     config.add_route('customers_json', '/customers.json')
 
     config.add_route('repositories', '/repositories')
+    config.add_route('repositories_json', '/repositories.json')
     config.add_route('repository', '/repository/{id}')
 
     config.add_route('upload', '/upload')

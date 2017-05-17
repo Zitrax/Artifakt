@@ -1,4 +1,5 @@
 import mimetypes
+import operator
 import os
 import re
 import tarfile
@@ -69,6 +70,16 @@ def get_artifact(request):
         raise HTTPNotFound("No artifact with sha1 {} found".format(sha1))
 
 
+# Python does not have an attrsetter like the attrgetter to write our own
+def attrsettr(obj, name, value):
+    attrs = name.split(".")
+    first = attrs[:-1]
+    last = attrs[-1]
+    for attr in first:
+        obj = getattr(obj, attr)
+    setattr(obj, last, value)
+
+
 @view_config(route_name='artifact_edit', renderer='json', request_method="POST")
 def artifact_edit(request):
     # For the exceptions we are forcing txt/json responses
@@ -79,7 +90,7 @@ def artifact_edit(request):
         request.response.status = HTTPBadRequest.code
         return 'ERROR: Missing name in request'
     name = request.POST['name']
-    if name not in ['name']:  # Supported attributes to edit
+    if name not in ['name', 'vcs.repository_id']:  # Supported attributes to edit
         request.response.status = HTTPBadRequest.code
         return 'ERROR: Attribute ' + name + ' is not editable'
     if "value" not in request.POST:
@@ -89,18 +100,17 @@ def artifact_edit(request):
 
     try:
         af = get_artifact(request)
-        old_name = af.name
-        setattr(af, name, value)
+        old = operator.attrgetter(name)(af)
+        attrsettr(af, name, value)
 
         # Add a comment describing the change
         comment = Comment()
         comment.artifakt_sha1 = request.matchdict['sha1']
-        comment.comment = "Changed name from '{}' to '{}'".format(old_name, value)
+        comment.comment = "Changed " + name + " from '{}' to '{}'".format(old, value)
         comment.user_id = request.user.id
         DBSession.add(comment)
         DBSession.flush()
         notify_new_comment(request, comment)
-
     except HTTPException as ex:
         request.response.status = ex.status_code
         return ex.message
