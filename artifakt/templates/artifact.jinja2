@@ -112,10 +112,14 @@
             <tr class="success">
                 <th colspan="{{ 5 if artifact.is_bundle else 2 }}">Version information</th>
             </tr>
-            <tr>
+            <tr id="repository_row">
                 <th>Repository</th>
                 <td>
-                    <span id="editable_repository" data-value="{{ artifact.vcs.repository.id }}"></span>
+                    <span id="editable_repository" data-value="{{ artifact.vcs.repository.id }}"></span>&nbsp;
+                    <small>
+                        <span id="editable_repository_icon" class="glyphicon glyphicon-edit"
+                              aria-hidden="true"></span>
+                    </small>
                 </td>
             </tr>
             <tr>
@@ -124,7 +128,9 @@
             </tr>
             <tr>
                 <th>Revision</th>
-                <td colspan="{{ 4 if artifact.is_bundle else 1 }}">{{ artifact.vcs.revision }}</td>
+                <td colspan="{{ 4 if artifact.is_bundle else 1 }}">
+                    <span id="editable_revision">{{ artifact.vcs.revision }}</span>
+                </td>
             </tr>
         {% endif %}
 
@@ -154,9 +160,6 @@
                 </form>
             {% endif %}
         {% endif %}
-        <button type="button" class="btn btn-sm btn-primary" id="edit_button">
-            <span>Edit</span>
-        </button>
         <form style="display: inline;" id="delete" action="/artifact/{{ artifact.sha1 }}/delete">
             <button
                     {% if not artifact.is_bundle and artifact.bundles %}

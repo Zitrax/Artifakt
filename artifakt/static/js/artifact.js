@@ -30,16 +30,28 @@ $(function () {
         name: 'vcs.repository_id',
         toggle: 'manual',
         source: '/repositories.json?editable',
-        display: function(value, sourceData) {
+        display: function (value, sourceData) {
             // Find the currently selected element and generate link for it
-            var elm = sourceData.find(function(e){return e.value===parseInt(value);});
+            var elm = sourceData.find(function (e) {
+                return e.value === parseInt(value);
+            });
             $(this).html('<a href="/repository/' + elm.value + '">' + elm.text + '</a>');
         }
     });
-    $('#edit_button').click(function(e) {
+    $('#repository_row').hover(function () {
+        $('#editable_repository_icon').stop().fadeIn();
+    }, function () {
+        $('#editable_repository_icon').stop().fadeOut();
+    });
+    $('#editable_repository_icon').click(function (e) {
         e.stopPropagation();
-        // This will enable and disable all manually editable fields
-       $('[id^="editable_"]').editable('toggle');
+        $('#editable_repository').editable('toggle');
+    }).hide();
+    $('#editable_revision').editable({
+        type: 'text',
+        pk: 1,
+        url: window.location.pathname + '/edit',
+        name: 'vcs.revision'
     });
 
     $("form.view_content").submit(function (e) {

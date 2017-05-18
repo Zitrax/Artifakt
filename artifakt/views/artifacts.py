@@ -90,7 +90,7 @@ def artifact_edit(request):
         request.response.status = HTTPBadRequest.code
         return 'ERROR: Missing name in request'
     name = request.POST['name']
-    if name not in ['name', 'vcs.repository_id']:  # Supported attributes to edit
+    if name not in ['name', 'vcs.repository_id', 'vcs.revision']:  # Supported attributes to edit
         request.response.status = HTTPBadRequest.code
         return 'ERROR: Attribute ' + name + ' is not editable'
     if "value" not in request.POST:
