@@ -15,7 +15,7 @@ from pyramid_mailer.message import Message
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 from artifakt import DBSession
-from artifakt.models.models import Artifakt, schemas, Delivery, Comment
+from artifakt.models.models import Artifakt, schemas, Delivery, Comment, Vcs
 
 
 @view_config(route_name='artifacts', renderer='artifakt:templates/artifacts.jinja2')
@@ -100,6 +100,10 @@ def artifact_edit(request):
 
     try:
         af = get_artifact(request)
+        # Special case - if we edit vcs info we must create it if not already existing
+        if 'vcs' in name and af.vcs is None:
+            af.vcs = Vcs()
+            af.vcs.revision = ''
         old = operator.attrgetter(name)(af)
         attrsettr(af, name, value)
 
@@ -123,7 +127,10 @@ def artifact(request):
     af = get_artifact(request)
     if len(request.matchdict['sha1']) != 40:
         raise HTTPFound(location='/artifact/' + af.sha1)
-    return {'artifact': af}
+    vcs = af.vcs
+    return {'artifact': af,
+            'vcs_repo_id': af.vcs.repository_id if vcs else "",
+            'vcs_rev': af.vcs.revision if vcs else ""}
 
 
 @view_config(route_name='artifact_json', renderer='json')

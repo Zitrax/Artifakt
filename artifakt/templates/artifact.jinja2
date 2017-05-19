@@ -105,34 +105,28 @@
 
         {% endif %}
 
-        {% if artifact.vcs is not none %}
-            <tr class="spacer">
-                <td></td>
-            </tr>
-            <tr class="success">
-                <th colspan="{{ 5 if artifact.is_bundle else 2 }}">Version information</th>
-            </tr>
-            <tr id="repository_row">
-                <th>Repository</th>
-                <td>
-                    <span id="editable_repository" data-value="{{ artifact.vcs.repository.id }}"></span>&nbsp;
-                    <small>
+        <tr class="spacer">
+            <td></td>
+        </tr>
+        <tr class="success">
+            <th colspan="{{ 5 if artifact.is_bundle else 2 }}">Version information</th>
+        </tr>
+        <tr id="repository_row">
+            <th>Repository</th>
+            <td>
+                <span id="editable_repository" data-value="{{ vcs_repo_id }}"></span>&nbsp;
+                <small>
                         <span id="editable_repository_icon" class="glyphicon glyphicon-edit"
                               aria-hidden="true"></span>
-                    </small>
-                </td>
-            </tr>
-            <tr>
-                <th>Type</th>
-                <td colspan="{{ 4 if artifact.is_bundle else 1 }}">{{ artifact.vcs.repository.type }}</td>
-            </tr>
-            <tr>
-                <th>Revision</th>
-                <td colspan="{{ 4 if artifact.is_bundle else 1 }}">
-                    <span id="editable_revision">{{ artifact.vcs.revision }}</span>
-                </td>
-            </tr>
-        {% endif %}
+                </small>
+            </td>
+        </tr>
+        <tr>
+            <th>Revision</th>
+            <td colspan="{{ 4 if artifact.is_bundle else 1 }}">
+                <span id="editable_revision">{{ vcs_rev }}</span>
+            </td>
+        </tr>
 
         </table>
 

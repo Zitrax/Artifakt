@@ -29,13 +29,16 @@ $(function () {
         url: window.location.pathname + '/edit',
         name: 'vcs.repository_id',
         toggle: 'manual',
+        pk: 1,
         source: '/repositories.json?editable',
         display: function (value, sourceData) {
             // Find the currently selected element and generate link for it
             var elm = sourceData.find(function (e) {
                 return e.value === parseInt(value);
             });
-            $(this).html('<a href="/repository/' + elm.value + '">' + elm.text + '</a>');
+            if(elm) {
+                $(this).html('<a href="/repository/' + elm.value + '">' + elm.text + '</a>');
+            }
         }
     });
     $('#repository_row').hover(function () {
