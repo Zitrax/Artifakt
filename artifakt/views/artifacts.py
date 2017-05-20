@@ -117,7 +117,7 @@ def artifact_edit(request):
         notify_new_comment(request, comment)
     except HTTPException as ex:
         request.response.status = ex.status_code
-        return ex.message
+        return 'ERROR: ' + ex.message
 
     return {'OK': 'OK'}
 

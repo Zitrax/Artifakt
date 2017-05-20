@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 import transaction
 from nose.tools import assert_in, assert_true, assert_raises, assert_is_not_none, \
-    assert_false, assert_is_none, assert_greater, assert_list_equal
+    assert_false, assert_is_none, assert_greater, assert_list_equal, assert_not_in
 from nose.tools import assert_set_equal
 from pyramid import testing
 from pyramid.httpexceptions import HTTPForbidden, HTTPBadRequest, HTTPNotFound, HTTPFound
@@ -21,14 +21,14 @@ from sqlalchemy.testing import eq_
 from webob.multidict import MultiDict
 
 from artifakt.models import models
-from artifakt.models.models import Base, Delivery, Comment, BundleLink
+from artifakt.models.models import Base, Delivery, Comment, BundleLink, Repository
 from artifakt.models.models import DBSession, Artifakt, Customer
 from artifakt.utils.file import count_files
 from artifakt.utils.time import duration_string
 from artifakt.views.admin import admin, verify_fs
 from artifakt.views.artifacts import artifact_delete, artifact_download, artifact_comment_add, artifact_delivery_add, \
     artifact_archive_view, artifact_delivery_delete, artifacts_json, artifact_json, artifact_comment_edit, \
-    artifact_comment_delete, artifact
+    artifact_comment_delete, artifact, artifact_edit
 from artifakt.views.artifacts import artifacts
 from artifakt.views.search import search
 from artifakt.views.upload import upload_post
@@ -742,6 +742,31 @@ class TestArtifact(BaseTest):
         data = artifact_json(request)
         eq_(af.filename, data['filename'])
         eq_(af.sha1, data['sha1'])
+
+    def test_artifact_edit(self):
+        af = self.simple_upload()
+        request = self.generic_request()
+        assert_in('ERROR', artifact_edit(request))
+        request.POST['name'] = 'ugh'
+        assert_in('ERROR', artifact_edit(request))
+        request.POST['name'] = 'name'
+        assert_in('ERROR', artifact_edit(request))
+        request.POST['value'] = 'test'
+        assert_in('ERROR', artifact_edit(request))
+        request.matchdict['sha1'] = "deadbeef"
+        assert_in('ERROR', artifact_edit(request))
+        request.matchdict['sha1'] = af.sha1
+        assert_not_in('ERROR', artifact_edit(request))
+        eq_('test', af.name)
+        # And now test with a vcs value
+        repo = Repository()
+        repo.url = 'a'
+        repo.type = 'git'
+        DBSession.add(repo)
+        request.POST['name'] = 'vcs.repository_id'
+        request.POST['value'] = '1'
+        assert_not_in('ERROR', artifact_edit(request))
+        eq_('1', af.vcs.repository_id)
 
     def test_users(self):
         user_list = users(self.generic_request())
