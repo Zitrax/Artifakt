@@ -10,7 +10,7 @@ with open(os.path.join(here, 'CHANGES.txt')) as f:
 
 requires = [
     'pyramid',
-    'pyramid_debugtoolbar',
+    'pyramid_debugtoolbar < 4.1',  # Python 3.4 chokes on 4.1 at the moment on travis (3.5 works though)
     'pyramid_tm',
     'SQLAlchemy < 1.1',
     'transaction',
