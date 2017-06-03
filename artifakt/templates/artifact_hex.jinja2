@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="{{ request.locale_name }}">
+<head>
+    {% include 'head.jinja2' %}
+    <title>Artifact Hex View {{ artifact.name }}</title>
+
+</head>
+<body>
+{% include 'navbar.jinja2' %}
+<div class="container">
+
+    <code style="padding: 0px; color: black;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{% for i in range(16) %}{{ '%02X' % i }}  {% endfor %}
+    </code>
+    <code style="padding: 0px;">{% for byte in bytes -%}{% if loop.index % 16 == 1 -%}<br><span style="color: black;">{{ '%010X' % (loop.index - 1) }}</span>&nbsp;{%- endif %}{{ byte.hex() | upper }}&nbsp;{%- endfor %}
+    </code>
+
+</div>
+</body>
+</html>

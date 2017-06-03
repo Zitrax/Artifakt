@@ -138,11 +138,23 @@ def artifact_json(request):
     return schemas['artifakt'].dump(get_artifact(request)).data
 
 
-# @view_config(route_name='artifact_edit', request_method='POST')
-# def artifact_edit(request):
-#     af = get_artifact(request)
-#     for attr in request.metadata:
-#         print(attr)
+@view_config(route_name='artifact_hex', renderer='artifakt:templates/artifact_hex.jinja2')
+def artifact_hex(request):
+    af = get_artifact(request)
+    if af.is_bundle:
+        raise HTTPBadRequest("Hex view not supported for bundles")
+
+    def bytes_from_file(filename):
+        """Generator reading file byte by byte"""
+        with open(filename, "rb") as f:
+            while True:
+                chunk = f.read(1)
+                if chunk:
+                    yield chunk
+                else:
+                    break
+
+    return {'artifact': af, 'bytes': bytes_from_file(af.file)}
 
 
 @view_config(route_name='artifact_delete')
