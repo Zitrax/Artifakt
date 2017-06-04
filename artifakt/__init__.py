@@ -97,7 +97,7 @@ def main(global_config, **settings):
     models.set_storage(settings['artifakt.storage'])
     zip_dir = os.path.join(models.storage(), 'zip')
     if not os.path.exists(zip_dir):
-        os.mkdir(zip_dir)
+        os.makedirs(zip_dir)
 
     config.add_static_view('js', 'static/js', cache_max_age=3600)
     config.add_static_view('css', 'static/css', cache_max_age=3600)
